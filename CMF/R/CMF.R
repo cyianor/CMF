@@ -105,6 +105,9 @@
 #'
 #' @docType package
 #' @name CMF-package
+#' @import Rcpp
+#' @importFrom Rcpp evalCpp
+#' @useDynLib CMF, .registration = TRUE
 NULL
 
 #' Default options for CMF
@@ -823,7 +826,7 @@ p_gradUsparseWrapper <- function(r,par,stochastic=FALSE) {
 # Internal function for checking whether the input is in the right format
 #
 p_check_sparsity = function(mat, max_row, max_col){
-	if(class(mat) == "matrix"){	#if normal matrix
+	if("matrix" %in% class(mat)){	#if normal matrix
 		if(ncol(mat) != 3 | min(mat[,1:2]) < 1 | max(mat[,1]) > max_row | max(mat[,2]) > max_col){
 			print("Matrix not in coordinate/triplet format")
 			return(FALSE)
