@@ -64,11 +64,11 @@ same rows, the very first entity set.
 }
 \examples{
 
-CMF_options = getCMFopts()
-CMF_options$iter.max = 500	# Change the number of iterations from default
-                           # of 200 to 500.
-CMF_options$useBias = FALSE # Do not take row and column means into
-                            # consideration.
+CMF_options <- getCMFopts()
+CMF_options$iter.max <- 500 # Change the number of iterations from default
+                            # of 200 to 500.
+CMF_options$useBias <- FALSE # Do not take row and column means into
+                             # consideration.
 # These options will be in effect when CMF_options is passed on to CMF.
 
 }

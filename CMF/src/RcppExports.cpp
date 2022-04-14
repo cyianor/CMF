@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // p_gradUsparse
 void p_gradUsparse(NumericMatrix Xm, NumericMatrix Gm, NumericMatrix CUm, NumericMatrix OUm, NumericMatrix Cm, NumericVector I, NumericVector T, NumericVector Rowm, NumericVector Colm);
 RcppExport SEXP _CMF_p_gradUsparse(SEXP XmSEXP, SEXP GmSEXP, SEXP CUmSEXP, SEXP OUmSEXP, SEXP CmSEXP, SEXP ISEXP, SEXP TSEXP, SEXP RowmSEXP, SEXP ColmSEXP) {

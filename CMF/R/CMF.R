@@ -849,25 +849,25 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 
 #' Internal function for computing the gradients
 #'
-#' @param r
-#' @param par
-#' @param stochastic
+#' @param r ?
+#' @param par ?
+#' @param stochastic Whether or not to perform updates on a subsample
 #'
 #' @return
 p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
   g <- matrix(r, nrow = par$D[par$this])
   cur <- g
   for (j in 1:par$D[par$this]) {
-    g[j,] <- g[j,] * par$alpha[par$this,]
+    g[j, ] <- g[j, ] * par$alpha[par$this, ]
   }
 
-  for (m in which(par$inds[,1] == par$this)) {
-    v2 <- par$inds[m,2]
+  for (m in which(par$inds[, 1] == par$this)) {
+    v2 <- par$inds[m, 2]
     if (stochastic & m == 1) {
       part <- sample(nrow(par$X[[m]]), round(nrow(par$X[[m]]) / 10))
       # NOTE: p_gradUsparse directly modifies g
       p_gradUsparse(
-        par$X[[m]][part,], g, cur, par$U[[v2]], par$covU[[v2]], 1,
+        par$X[[m]][part, ], g, cur, par$U[[v2]], par$covU[[v2]], 1,
         par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu)
     } else {
       p_gradUsparse(
@@ -876,12 +876,12 @@ p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
     }
   }
 
-  for (m in which(par$inds[,2] == par$this)) {
-    v1 <- par$inds[m,1]
+  for (m in which(par$inds[, 2] == par$this)) {
+    v1 <- par$inds[m, 1]
     if (stochastic & m == 1) {
       part <- sample(nrow(par$X[[m]]), round(nrow(par$X[[m]]) / 10))
       p_gradUsparse(
-        par$X[[m]][part,], g, cur, par$U[[v1]], par$covU[[v1]], 2,
+        par$X[[m]][part, ], g, cur, par$U[[v1]], par$covU[[v1]], 2,
         par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu)
     } else {
       p_gradUsparse(
@@ -901,18 +901,19 @@ p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
 #'
 #' @return \code{TRUE} if the input is in coordinate/triplet format.
 #'         \code{FALSE} otherwise.
-p_check_sparsity <- function(mat, max_row, max_col){
+p_check_sparsity <- function(mat, max_row, max_col) {
   if (is.matrix(mat)) {
     if (ncol(mat) != 3 |
-        min(mat[,1:2]) < 1 |
-        max(mat[,1]) > max_row |
-        max(mat[,2]) > max_col) {
+        min(mat[, 1:2]) < 1 |
+        max(mat[, 1]) > max_row |
+        max(mat[, 2]) > max_col) {
       cat("Matrix not in coordinate/triplet format")
       return(FALSE)
     } else {
       return(TRUE)
     }
   }
+
   cat("Input not of class `matrix`")
   return(FALSE)
 }
@@ -953,10 +954,10 @@ matrix_to_triplets <- function(orig) {
   triplets <- matrix(0, nrow = length(which(!is.na(orig))), ncol = 3)
   count <- 1
 
-  for (y in 1:nrow(orig)) {
-    for (x in 1:ncol(orig)) {
-      if (!is.na(orig[y,x])) {
-        triplets[count,] <- c(y, x, orig[y,x])
+  for (y in seq_len(nrow(orig))) {
+    for (x in seq_len(ncol(orig))) {
+      if (!is.na(orig[y, x])) {
+        triplets[count, ] <- c(y, x, orig[y, x])
         count <- count + 1
       }
     }
@@ -990,10 +991,10 @@ matrix_to_triplets <- function(orig) {
 #'
 #' @export
 triplets_to_matrix <- function(triplets) {
-  mat <- matrix(NA, nrow = max(triplets[,1]), ncol = max(triplets[,2]))
+  mat <- matrix(NA, nrow = max(triplets[, 1]), ncol = max(triplets[, 2]))
 
-  for (t in 1:nrow(triplets)) {
-    mat[triplets[t,1], triplets[t,2]] <- triplets[t,3]
+  for (t in seq_len(nrow(triplets))) {
+    mat[triplets[t, 1], triplets[t, 2]] <- triplets[t, 3]
   }
 
   return(mat)

@@ -1,8 +1,8 @@
 Package: CMF
 Type: Package
 Title: Collective Matrix Factorization
-Version: 1.0.3
-Date: 2020-03-13
+Version: 1.0.3.99
+Date: 2022-04-14
 Authors@R: c(
 	person(given = "Arto", family = "Klami", email = "arto.klami@cs.helsinki.fi",
 		   role = "aut"),
@@ -28,4 +28,4 @@ Imports: Rcpp, stats
 LinkingTo: Rcpp
 Encoding: UTF-8
 NeedsCompilation: yes
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.2

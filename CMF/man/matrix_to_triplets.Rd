@@ -34,7 +34,7 @@ not zero.
 }
 \examples{
 
-x <- matrix(c(1,2,NA,NA,5,6),nrow=3)
+x <- matrix(c(1, 2, NA, NA, 5, 6), nrow = 3)
 triplet <- matrix_to_triplets(x)
 print(triplet)
 
