@@ -18,7 +18,10 @@ sparse format. This function converts regular R matrices
 into that format.
 }
 \details{
-The element \verb{X[i,j]`` on the }i\verb{-th row and }j\verb{-th column is represented as a triple }(i, j, X\link{i,k})\verb{. The input for CMF is then a matrix where each row specifies one element, and hence the representation is of size }N x 3\verb{, where }N` is the total number of observed entries.
+The element \code{X[i, j]} on the \code{i}-th row and \code{j}-th column is represented
+as a triple \verb{(i, j, X[i,k])}. The input for CMF is then a matrix
+where each row specifies one element, and hence the representation
+is of size \verb{N x 3}, where \code{N} is the total number of observed entries.
 
 In the original input matrix the missing entries should be marked
 as \code{NA}. In the output they will be completely omitted.

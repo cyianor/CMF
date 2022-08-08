@@ -990,7 +990,7 @@ p_check_sparsity <- function(mat, max_row, max_col) {
 #' sparse format. This function converts regular R matrices
 #' into that format.
 #'
-#' The element `X[i,j]`` on the `i`-th row and `j`-th column is represented
+#' The element `X[i, j]` on the `i`-th row and `j`-th column is represented
 #' as a triple `(i, j, X[i,k])`. The input for CMF is then a matrix
 #' where each row specifies one element, and hence the representation
 #' is of size `N x 3`, where `N` is the total number of observed entries.
