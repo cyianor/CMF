@@ -15,7 +15,7 @@ p_check_sparsity(mat, max_row, max_col)
 }
 \value{
 \code{TRUE} if the input is in coordinate/triplet format.
-        \code{FALSE} otherwise.
+\code{FALSE} otherwise.
 }
 \description{
 Internal function for checking whether the input is in the right format

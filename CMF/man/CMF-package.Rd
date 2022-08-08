@@ -19,15 +19,14 @@ CMF, following the presentation in "Group-sparse embeddings in
 collective matrix factorization" (see references below).
 
 The main functionality is provided by the function
-\code{\link{CMF}} that is used for learning the model, and by the
-function \code{\link{predictCMF}} that estimates missing entries
+\code{\link[=CMF]{CMF()}} that is used for learning the model, and by the
+function \code{\link[=predictCMF]{predictCMF()}} that estimates missing entries
 based on the learned model. These functions take as input
 lists of matrices in a specific sparse format that stores
 only the observed entries but that explicitly stores
 zeroes (unlike most sparse matrix representations).
 For converting between regular matrices and this sparse
-format see \code{\link{matrix_to_triplets}} and
-\code{\link{triplets_to_matrix}}.
+format see \code{\link[=matrix_to_triplets]{matrix_to_triplets()}} and \code{\link[=triplets_to_matrix]{triplets_to_matrix()}}.
 
 The package can also be used to learn Bayesian canonical
 correlation analysis (CCA) and group factor analysis (GFA)

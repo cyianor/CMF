@@ -14,7 +14,7 @@ p_gradUsparseWrapper(r, par, stochastic = FALSE)
 \item{stochastic}{Whether or not to perform updates on a subsample}
 }
 \value{
-
+Gradient
 }
 \description{
 Internal function for computing the gradients
