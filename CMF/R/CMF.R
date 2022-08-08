@@ -13,15 +13,14 @@
 #' collective matrix factorization" (see references below).
 #'
 #' The main functionality is provided by the function
-#' \code{\link{CMF}} that is used for learning the model, and by the
-#' function \code{\link{predictCMF}} that estimates missing entries
+#' [CMF()] that is used for learning the model, and by the
+#' function [predictCMF()] that estimates missing entries
 #' based on the learned model. These functions take as input
 #' lists of matrices in a specific sparse format that stores
 #' only the observed entries but that explicitly stores
 #' zeroes (unlike most sparse matrix representations).
 #' For converting between regular matrices and this sparse
-#' format see \code{\link{matrix_to_triplets}} and
-#' \code{\link{triplets_to_matrix}}.
+#' format see [matrix_to_triplets()] and [triplets_to_matrix()].
 #'
 #' The package can also be used to learn Bayesian canonical
 #' correlation analysis (CCA) and group factor analysis (GFA)
@@ -117,26 +116,24 @@ NULL
 
 #' Default options for CMF
 #'
-#' A helper function that creates a list of options to be passed
-#' to \code{CMF}. To run the code with other option values, first
-#' run this function and then directly modify the entries before
-#' passing the list to \code{CMF}.
+#' A helper function that creates a list of options to be passed to `CMF`.
+#' To run the code with other option values, first run this function and
+#' then directly modify the entries before passing the list to `CMF`.
 #'
 #' Most of the parameters are for controlling the optimization, but some will
-#' alter the model itself. In particular, \code{useBias} is used for turning
-#' the bias terms on and off, and \code{method} will change the prior for
-#' \code{U}.
+#' alter the model itself. In particular, `useBias` is used for turning
+#' the bias terms on and off, and `method` will change the prior for `U`.
 #'
-#' The default choice for \code{method} is \code{"gCMF"}, providing the
+#' The default choice for `method` is `"gCMF"`, providing the
 #' group-wise sparse CMF that identifies both shared and private factors
-#' (see Klami et al. (2013) for details). The value \code{"CMF"} turns off
+#' (see Klami et al. (2013) for details). The value `"CMF"` turns off
 #' the group-wise sparsity, providing a CMF solution that attempts to learn
-#' only factors shared by all matrices. Finally, \code{method="GFA"} implements
+#' only factors shared by all matrices. Finally, `method="GFA"` implements
 #' the group factor analysis (GFA) method, by fixing the variance of
-#' \code{U[[1]]} to one and forcing \code{useBias=FALSE}. Then \code{U[[1]]}
-#' can be interpreted as latent variables with unit variance and zero mean,
-#' as assumed by GFA and CCA (special case of GFA with M=2). Note that as a
-#' multi-view learning method \code{"GFA"} requires all matrices to share the
+#' `U[[1]]` to one and forcing `useBias=FALSE`. Then `U[[1]]` can be
+#' interpreted as latent variables with unit variance and zero mean,
+#' as assumed by GFA and CCA (special case of GFA with `M = 2`). Note that as a
+#' multi-view learning method `"GFA"` requires all matrices to share the
 #' same rows, the very first entity set.
 #'
 #' @return Returns a list of:
@@ -153,20 +150,19 @@ NULL
 #' \item{grad.max}{Maximum absolute change for the elements of the projection
 #'                 matrices during one gradient step. Small values help to
 #'                 prevent over-shooting, wheres inf results to no constraints.
-#'                 Default is \code{inf}.}
+#'                 Default is `inf`.}
 #' \item{iter.max }{Number of iterations for the whole algorithm.}
 #' \item{computeCost}{Should the cost function values be computed or not.
-#'                    Defaults to \code{TRUE}.}
+#'                    Defaults to `TRUE`.}
 #' \item{verbose}{0 = supress all printing, 1 = print current iteration and
 #'                test RMSE every now and then, 2 = in addition to level 1
 #'                print also the current gradient norm.}
-#' \item{useBias}{Set this to \code{FALSE} to exclude the row and column
-#'                bias terms. The default is \code{TRUE}.}
+#' \item{useBias}{Set this to `FALSE` to exclude the row and column bias terms.
+#'                The default is `TRUE`.}
 #' \item{method}{Default value of "gCMF" computes the CMF with group-sparsity.
 #'               The other possible values are "CMF" for turning off the
 #'               group-sparsity prior, and "GFA" for implementing group factor
-#'               analysis (and canonical correlation analysis when
-#'               \code{M = 2}).}
+#'               analysis (and canonical correlation analysis when `M = 2`).}
 #' \item{prior.alpha_0}{Hyperprior values for the gamma prior for ARD.}
 #' \item{prior.alpha_0t}{Hyperprior values for the gamma prior for tau.}
 #' @author Arto Klami and Lauri Väre
@@ -256,21 +252,20 @@ getCMFopts <- function() {
 #'
 #' Code for predicting missing elements with an existing CMF model.
 #' The predictions are made for all of the elements specified in the list of
-#' input matrices \code{X}. The function also returns the root mean square
-#' error (RMSE) between the predicted outputs and the values provided in
-#' \code{X}.
+#' input matrices `X`. The function also returns the root mean square error
+#' (RMSE) between the predicted outputs and the values provided in `X`.
 #'
-#' Note that \code{X} needs to be provided as a set of triplets instead of as
-#' a regular matrix. See \code{\link{matrix_to_triplets}}.
+#' Note that `X` needs to be provided as a set of triplets instead of as
+#' a regular matrix. See [matrix_to_triplets()].
 #'
 #' @param X A list of sparse matrices specifying the indices for which to
 #'          make the predictions.
-#'          These matrices must correspond to the structure used for \code{X}
-#'          when learning the model with \code{CMF}.
-#' @param model A list of model parameter values provided by \code{CMF}.
+#'          These matrices must correspond to the structure used for `X`
+#'          when learning the model with `CMF`.
+#' @param model A list of model parameter values provided by `CMF`.
 #' @return A list of
 #' \item{out}{A list of matrices corresponding to predictions for each
-#'            matrix in \code{X}.}
+#'            matrix in `X`.}
 #' \item{error}{A vector containing the root-mean-square error for each
 #'              matrix separately.}
 #'
@@ -284,34 +279,34 @@ predictCMF <- function(X, model) {
   D <- model$D
   inds <- model$inds
 
-  for (i in 1:length(X)) {
+  for (i in seq_along(X)) {
     if(!p_check_sparsity(
-      X[[i]], model$D[model$inds[i,1]], model$D[model$inds[i,2]])) {
+      X[[i]], D[inds[i, 1]], D[inds[i, 2]])) {
         stop(paste0("Input matrix ", i, " is not in the correct format."))
     }
   }
 
   out <- list()
   for (m in 1:model$M) {
-    out[[m]] <- X[[m]][,]
+    out[[m]] <- X[[m]][, ]
     # NOTE: Directly modifies out[[m]]
     p_updatePseudoData(
-      out[[m]], model$U[[model$inds[m,1]]], model$U[[model$inds[m,2]]],
+      out[[m]], model$U[[inds[m, 1]]], model$U[[inds[m, 2]]],
       model$bias[[m]]$row$mu, model$bias[[m]]$col$mu)
   }
   for (m in which(model$likelihood == "bernoulli")) {
-    out[[m]][,3] <- exp(out[[m]][,3])
-    out[[m]][,3] <- out[[m]][,3] / (1 + out[[m]][,3])
+    out[[m]][, 3] <- exp(out[[m]][, 3])
+    out[[m]][, 3] <- out[[m]][, 3] / (1 + out[[m]][, 3])
   }
   for (m in which(model$likelihood == "poisson")) {
-    out[[m]][,3] <- exp(out[[m]][,3])
-    out[[m]][,3] <- log(1 + out[[m]][,3])
+    out[[m]][, 3] <- exp(out[[m]][, 3])
+    out[[m]][, 3] <- log(1 + out[[m]][, 3])
   }
 
   error <- rep(0, length(X))
-  for (m in 1:length(X)) {
-    for (r in 1:nrow(X[[m]])) {
-      error[m] <- error[m] + (X[[m]][r,3] - out[[m]][r,3]) ^ 2
+  for (m in seq_along(X)) {
+    for (r in seq_len(nrow(X[[m]]))) {
+      error[m] <- error[m] + (X[[m]][r, 3] - out[[m]][r, 3])^2
     }
     error[m] <- sqrt(error[m] / nrow(X[[m]]))
   }
@@ -322,44 +317,39 @@ predictCMF <- function(X, model) {
 #' Collective Matrix Factorization
 #'
 #' Learns the CMF model for a given collection of M matrices.
-#' The code learns the parameters of a variational approximation
-#' for CMF, and also computes predictions for indices specified
-#' in \code{test}.
+#' The code learns the parameters of a variational approximation for CMF,
+#' and also computes predictions for indices specified in `test`.
 #'
-#' The variational approximation is fully factorized over all of
-#' the model parameters, including individual elements of the
-#' projection matrices. The parameters for the projection
-#' matrices are updated jointly by Newton-Raphson method, whereas
-#' the rest use closed-form updates.
+#' The variational approximation is fully factorized over all of the model
+#' parameters, including individual elements of the projection matrices.
+#' The parameters for the projection matrices are updated jointly by
+#' Newton-Raphson method, whereas the rest use closed-form updates.
 #'
-#' Note that the input data needs to be given in a specific
-#' sparse format. See \code{\link{matrix_to_triplets}} for details.
+#' Note that the input data needs to be given in a specific sparse format.
+#' See [matrix_to_triplets()] for details.
 #'
-#' The behavior of the algorithm can be modified via the
-#' \code{opts} parameter. See \code{\link{getCMFopts}} for details.
-#' Of particular interest are the elements \code{useBias} and
-#' \code{method}.
+#' The behavior of the algorithm can be modified via the `opts` parameter.
+#' See [getCMFopts()] for details. Of particular interest are the elements
+#' `useBias` and `method`.
 #'
-#' For full description of the output parameters, see the
-#' referred publication. The notation in the code follows
-#' roughly the notation used in the paper.
+#' For full description of the output parameters, see the referred publication.
+#' The notation in the code follows roughly the notation used in the paper.
 #'
 #' @param X List of input matrices.
-#' @param inds A \code{length(X)} times 2 matrix that links dimensions of the
-#'             matrices in \code{X} to object sets. \code{inds[m, 1]} tells
-#'             which object set corresponds to the rows in matrix
-#'             \code{X[[m]]}, and \code{inds[m, 2]} tells the same for the
-#'             columns.
+#' @param inds A `length(X)` times 2 matrix that links dimensions of the
+#'             matrices in `X` to object sets. `inds[m, 1]` tells which
+#'             object set corresponds to the rows in matrix `X[[m]]`,
+#'             and `inds[m, 2]` tells the same for the columns.
 #' @param K The number of factors.
-#' @param opts A list of options as given by \code{\link{getCMFopts}}.
-#'             If set to \code{NULL}, the default values will be used.
+#' @param opts A list of options as given by [getCMFopts()].
+#'             If set to `NULL`, the default values will be used.
 #' @param likelihood A list of likelihood choices, one for each matrix in X.
 #'                   Each entry should be a string with possible values of:
 #'                   "gaussian", "bernoulli" or "poisson".
 #' @param D A vector containing sizes of each object set.
 #' @param test A list of test matrices. If not NULL, the code will compute
 #'             predictions for these elements of the matrices. This duplicates
-#'             the functionality of \code{\link{predictCMF}}.
+#'             the functionality of [predictCMF()].
 #' @return A list of
 #' \item{U}{A list of the mean parameters for the rank-K projection matrices,
 #'           one for each object set.}
@@ -368,10 +358,10 @@ predictCMF <- function(X, model) {
 #' \item{tau}{A vector of the precision parameter means.}
 #' \item{alpha}{A vector of the ARD parameter means.}
 #' \item{cost}{A vector of variational lower bound values.}
-#' \item{inds}{The input parameter \code{inds} stored for further use.}
+#' \item{inds}{The input parameter `inds` stored for further use.}
 #' \item{errors}{A vector containing root-mean-square errors for each
 #'               iteration, computed over the elements indicated by the
-#'               \code{test} parameter.}
+#'               `test` parameter.}
 #' \item{bias}{A list (of lists) storing the parameters of the row and
 #'             column bias terms.}
 #' \item{D}{The sizes of the object sets as given in the parameters.}
@@ -379,11 +369,11 @@ predictCMF <- function(X, model) {
 #' \item{Uall}{Matrices of U joined into one sum(D) by K matrix, for
 #'             easier plotting of the results.}
 #' \item{items}{A list containing the running number for each item among
-#'              all object sets. This corresponds to rows of the \code{Uall}
+#'              all object sets. This corresponds to rows of the `Uall`
 #'              matrix. Each part of the list contains a vector that has the
 #'              numbers for each particular object set.}
 #' \item{out}{If test matrices were provided, returns the reconstructed data
-#'            sets. Otherwise returns \code{NULL}.}
+#'            sets. Otherwise returns `NULL`.}
 #' \item{M}{The number of input matrices.}
 #' \item{likelihood}{The likelihoods of the matrices.}
 #' \item{opts}{The options used for running the code.}
@@ -402,15 +392,15 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     opts <- getCMFopts()
   }
 
-  for (i in 1:length(X)) {
-    if(!p_check_sparsity(X[[i]], D[inds[i,1]], D[inds[i,2]])){
+  for (i in seq_along(X)) {
+    if (!p_check_sparsity(X[[i]], D[inds[i, 1]], D[inds[i, 2]])) {
       stop(paste0("Input matrix ", i, " is not in the correct format."))
     }
   }
 
-  if (opts$method=="GFA") {
+  if (opts$method == "GFA") {
     opts$useBias <- FALSE
-    if (!all(inds[,1] == 1)) {
+    if (!all(inds[, 1] == 1)) {
       stop(paste0(
         "GFA requires all matrices to share the first entity set, ",
         "since it is a multi-view learning method."))
@@ -427,14 +417,14 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   # and items[[inds[m,2]]] is the same for columns
   M <- length(X)
   indvec <- as.vector(inds)
-  types <- 1:max(indvec)
+  types <- seq_len(max(indvec))
   C <- max(types)
   items <- list()
 
   N <- 0
   for (t in types) {
     count <- D[t]
-    items[[t]] <- N + (1:count)
+    items[[t]] <- N + seq_len(count)
     N <- N + count
   }
 
@@ -451,7 +441,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   tau <- rep(opts$init.tau, M)            # The mean noise precisions
   a_tau <- alpha_0t + rep(0, M)           # The parameters of the Gamma
                                           #   distribution
-  for (m in 1:M) {
+  for (m in seq_len(M)) {
      a_tau[m] <- a_tau[m] + nrow(X[[m]]) / 2
   }
   b_tau <- rep(0, M)                      #     for the noise precisions
@@ -471,26 +461,26 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   # Parameters for modeling the row and column bias terms
   #
   for (m in 1:M) {
-    bias[[m]]$row$mu <- rep(0, D[inds[m,1]])
+    bias[[m]]$row$mu <- rep(0, D[inds[m, 1]])
     bias[[m]]$row$m <- 0
     if (!opts$useBias) {
-      bias[[m]]$row$nu <- rep(0, D[inds[m,1]])
+      bias[[m]]$row$nu <- rep(0, D[inds[m, 1]])
       bias[[m]]$row$lambda <- 0
       bias[[m]]$row$scale <- 0
     } else {
-      bias[[m]]$row$nu <- rep(1, D[inds[m,1]])
+      bias[[m]]$row$nu <- rep(1, D[inds[m, 1]])
       bias[[m]]$row$lambda <- 1
       bias[[m]]$row$scale <- 1
     }
 
-    bias[[m]]$col$mu <- rep(0, D[inds[m,2]])
+    bias[[m]]$col$mu <- rep(0, D[inds[m, 2]])
     bias[[m]]$col$m <- 0
     if (!opts$useBias) {
-      bias[[m]]$col$nu <- rep(0, D[inds[m,2]])
+      bias[[m]]$col$nu <- rep(0, D[inds[m, 2]])
       bias[[m]]$col$lambda <- 0
       bias[[m]]$col$scale <- 0
     } else {
-      bias[[m]]$col$nu <- rep(1, D[inds[m,2]])
+      bias[[m]]$col$nu <- rep(1, D[inds[m, 2]])
       bias[[m]]$col$lambda <- 1
       bias[[m]]$col$scale <- 1
     }
@@ -504,24 +494,24 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     xi[[m]] <- X[[m]]
     # NOTE: Directly modifies xi[[m]]
     p_updatePseudoData(
-      xi[[m]], U[[inds[m,1]]], U[[inds[m,2]]],
+      xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
       bias[[m]]$row$mu, bias[[m]]$col$mu)
-    X[[m]][,3] <- xi[[m]][,3] -
-      (1 / (1 + exp(-xi[[m]][,3])) - origX[[m]][,3]) / tau[m]
+    X[[m]][, 3] <- xi[[m]][, 3] -
+      (1 / (1 + exp(-xi[[m]][, 3])) - origX[[m]][, 3]) / tau[m]
   }
 
   for (m in which(likelihood == "poisson")) {
     xi[[m]] <- X[[m]]
-    maxval <- max(X[[m]][,3])
+    maxval <- max(X[[m]][, 3])
     # print(paste("Maximal count in view ",m," is ",maxval,
     #             "; consider clipping if this is very large.",sep=""))
     tau[m] <- 0.25 + 0.17 * maxval
     p_updatePseudoData(
-      xi[[m]], U[[inds[m,1]]], U[[inds[m,2]]],
+      xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
       bias[[m]]$row$mu, bias[[m]]$col$mu)
-    X[[m]][,3] <- xi[[m]][,3] -
-      (1 / (1 + exp(-xi[[m]][,3])) *
-       (1 - origX[[m]][,3] / log(1 + exp(xi[[m]][,3])))) / tau[m]
+    X[[m]][, 3] <- xi[[m]][, 3] -
+      (1 / (1 + exp(-xi[[m]][, 3])) *
+       (1 - origX[[m]][, 3] / log(1 + exp(xi[[m]][, 3])))) / tau[m]
   }
 
   cost <- vector()  # For storing the lower bounds
@@ -530,9 +520,9 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   # The main loop
   #
   errors <- array(0, c(opts$iter.max, M))
-  for (iter in 1:opts$iter.max) {
+  for (iter in seq_len(opts$iter.max)) {
     #gc() # Just to make sure there are no memory leaks
-    if ((opts$verbose > 0) & (iter %% 10 == 1)) {
+    if ((opts$verbose > 0) && (iter %% 10 == 1)) {
       cat(paste0("Iteration: ", iter, "/", opts$iter.max, "\n"))
     }
     #
@@ -543,15 +533,15 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       #
       # Update the variance
       #
-      covU[[i]] <- matrix(alpha[i,], nrow=D[[i]], ncol=K, byrow=TRUE)
-      for (m in which(inds[,1] == i)) {
+      covU[[i]] <- matrix(alpha[i, ], nrow = D[[i]], ncol = K, byrow = TRUE)
+      for (m in which(inds[, 1] == i)) {
         # NOTE: Directly modifies covU[[i]]
         p_covUsparse(
-          X[[m]], covU[[i]], U[[inds[m,2]]], covU[[inds[m,2]]], 1, tau[m])
+          X[[m]], covU[[i]], U[[inds[m, 2]]], covU[[inds[m, 2]]], 1, tau[m])
       }
-      for (m in which(inds[,2] == i)) {
+      for (m in which(inds[, 2] == i)) {
         p_covUsparse(
-          X[[m]], covU[[i]], U[[inds[m,1]]], covU[[inds[m,1]]], 2, tau[m])
+          X[[m]], covU[[i]], U[[inds[m, 1]]], covU[[inds[m, 1]]], 2, tau[m])
       }
       covU[[i]] <- 1 / covU[[i]]
       # Update U itself
@@ -571,10 +561,10 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         }
 
         U[[i]] <- reg * U[[i]] + (1 - reg) * (U[[i]] - scale * g)
-        norm <- norm + sum(g ^ 2)
+        norm <- norm + sum(g^2)
       }
     }
-    if ((opts$verbose > 1) & (iter %% 10 == 1)) {
+    if ((opts$verbose > 1) && (iter %% 10 == 1)) {
       cat(paste0(" Gradient norm: ", norm, "\n"))
     }
 
@@ -582,65 +572,79 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     # Update the mean profiles (and their priors)
     #
     if (opts$useBias) {
-      for (m in 1:M) {
+      for (m in seq_len(M)) {
         # The approximations for each data point
         temp <- p_updateMean(
-          X[[m]], U[[inds[m,1]]], U[[inds[m,2]]], 1, bias[[m]]$col$mu)
+          X[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]], 1, bias[[m]]$col$mu
+        )
         bias[[m]]$row$count <- temp$count
-        bias[[m]]$row$nu <-
+        bias[[m]]$row$nu <- (
           1 / (tau[m] * bias[[m]]$row$count + 1 / bias[[m]]$row$scale)
-        bias[[m]]$row$mu <-
-          (tau[m] * temp$sum + bias[[m]]$row$m / bias[[m]]$row$scale) *
-          bias[[m]]$row$nu
+        )
+        bias[[m]]$row$mu <- (
+          (tau[m] * temp$sum + bias[[m]]$row$m / bias[[m]]$row$scale)
+          * bias[[m]]$row$nu
+        )
         # The approximation for the mean
-        bias[[m]]$row$lambda <- 1 / (1 + 1 / bias[[m]]$row$scale * D[inds[m,1]])
-        bias[[m]]$row$m <-
+        bias[[m]]$row$lambda <- (
+          1 / (1 + 1 / bias[[m]]$row$scale * D[inds[m, 1]])
+        )
+        bias[[m]]$row$m <- (
           1 / bias[[m]]$row$scale * sum(bias[[m]]$row$mu) * bias[[m]]$row$lambda
+        )
 
         # The scale
-        bias[[m]]$row$scale <-
-          mean(bias[[m]]$row$nu + (bias[[m]]$row$mu - bias[[m]]$row$m) ^ 2)
+        bias[[m]]$row$scale <- (
+          mean(bias[[m]]$row$nu + (bias[[m]]$row$mu - bias[[m]]$row$m)^2)
+        )
 
         # The approximations for each data point
         temp <- p_updateMean(
-          X[[m]], U[[inds[m,1]]], U[[inds[m,2]]], 2, bias[[m]]$row$mu)
+          X[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]], 2, bias[[m]]$row$mu
+        )
         bias[[m]]$col$count <- temp$count
-        bias[[m]]$col$nu <-
+        bias[[m]]$col$nu <- (
           1 / (tau[m] * bias[[m]]$col$count + 1 / bias[[m]]$col$scale)
-        bias[[m]]$col$mu <-
-          (tau[m] * temp$sum + bias[[m]]$col$m / bias[[m]]$col$scale) *
-          bias[[m]]$col$nu
+        )
+        bias[[m]]$col$mu <- (
+          (tau[m] * temp$sum + bias[[m]]$col$m / bias[[m]]$col$scale)
+          * bias[[m]]$col$nu
+        )
 
         # The approximation for the mean
-        bias[[m]]$col$lambda <- 1 / (1 + 1 / bias[[m]]$col$scale * D[inds[m,2]])
-        bias[[m]]$col$m <-
+        bias[[m]]$col$lambda <- (
+          1 / (1 + 1 / bias[[m]]$col$scale * D[inds[m, 2]])
+        )
+        bias[[m]]$col$m <- (
           1 / bias[[m]]$col$scale * sum(bias[[m]]$col$mu) * bias[[m]]$col$lambda
+        )
 
         # The scale
-        bias[[m]]$col$scale <-
-          mean(bias[[m]]$col$nu + (bias[[m]]$col$mu - bias[[m]]$col$m) ^ 2)
+        bias[[m]]$col$scale <- (
+          mean(bias[[m]]$col$nu + (bias[[m]]$col$mu - bias[[m]]$col$m)^2)
+        )
       }
     }
 
     #
     # Update alpha, the ARD parameters
     #
-    for (i in 1:C) {
+    for (i in seq_len(C)) {
       tmp <- rep(beta_0 * 2, K)
-      for (k in 1:K) {
-        tmp[k] <- tmp[k] + sum(U[[i]][,k] ^ 2) + sum(covU[[i]][,k])
+      for (k in seq_len(K)) {
+        tmp[k] <- tmp[k] + sum(U[[i]][, k]^2) + sum(covU[[i]][, k])
       }
       tmp <- tmp / 2
-      alpha[i,] <- a_ard[i] / tmp
-      b_ard[i,] <- tmp
+      alpha[i, ] <- a_ard[i] / tmp
+      b_ard[i, ] <- tmp
     }
     if (opts$method == "CMF") {
-      for (k in 1:K) {
-        alpha[,k] <- sum(a_ard) / sum(b_ard[,k])
+      for (k in seq_len(K)) {
+        alpha[, k] <- sum(a_ard) / sum(b_ard[, k])
       }
     }
     if (opts$method == "GFA") {
-      alpha[1,] <- 1
+      alpha[1, ] <- 1
     }
 
     #
@@ -648,13 +652,14 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     #
     for (m in which(likelihood == "gaussian")) {
       b_tau[m] <- beta_0t
-      v1 <- inds[m,1]
-      v2 <- inds[m,2]
+      v1 <- inds[m, 1]
+      v2 <- inds[m, 2]
       b_tau[m] <- beta_0t + 0.5 * p_updateTau(
         X[[m]], U[[v1]], U[[v2]],
         covU[[v1]], covU[[v2]],
         bias[[m]]$row$mu, bias[[m]]$col$mu,
-        bias[[m]]$row$nu, bias[[m]]$col$nu)
+        bias[[m]]$row$nu, bias[[m]]$col$nu
+      )
       tau[m] <- a_tau[m] / b_tau[m]
     }
 
@@ -666,48 +671,57 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       xi[[m]] <- X[[m]]
       # NOTE: Directly modifies xi[[m]]
       p_updatePseudoData(
-        xi[[m]], U[[inds[m,1]]], U[[inds[m,2]]],
-        bias[[m]]$row$mu, bias[[m]]$col$mu)
-      X[[m]][,3] <- xi[[m]][,3] -
-        (1 / (1 + exp(-xi[[m]][,3])) - origX[[m]][,3]) / tau[m]
+        xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+        bias[[m]]$row$mu, bias[[m]]$col$mu
+      )
+      X[[m]][, 3] <- (
+        xi[[m]][, 3] - (1 / (1 + exp(-xi[[m]][, 3])) - origX[[m]][, 3]) / tau[m]
+      )
     }
+
     for (m in which(likelihood == "poisson")) {
       xi[[m]] <- X[[m]]
       p_updatePseudoData(
-        xi[[m]], U[[inds[m,1]]], U[[inds[m,2]]],
-        bias[[m]]$row$mu, bias[[m]]$col$mu)
-      X[[m]][,3] <- xi[[m]][,3] -
-        (1 / (1 + exp(-xi[[m]][,3])) *
-         (1 - origX[[m]][,3] / log(1 + exp(xi[[m]][,3])))) / tau[m]
+        xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+        bias[[m]]$row$mu, bias[[m]]$col$mu
+      )
+      X[[m]][, 3] <- (
+        xi[[m]][, 3] - (
+          1 / (1 + exp(-xi[[m]][, 3]))
+          * (1 - origX[[m]][, 3] / log(1 + exp(xi[[m]][, 3])))
+        ) / tau[m]
+      )
     }
 
     par <- list(
       D = D, alpha = alpha, tau = tau,
-      X = X, U = U, covU = covU, inds = inds, this = 1)
+      X = X, U = U, covU = covU, inds = inds, this = 1
+    )
 
     if (!is.null(test)) {
       out <- list()
-      for (m in 1:M) {
-        out[[m]] <- test[[m]][,]
+      for (m in seq_len(M)) {
+        out[[m]] <- test[[m]][, ]
         # NOTE: Directly modifies out[[m]]
         p_updatePseudoData(
-          out[[m]], U[[inds[m,1]]], U[[inds[m,2]]],
-          bias[[m]]$row$mu, bias[[m]]$col$mu)
+          out[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+          bias[[m]]$row$mu, bias[[m]]$col$mu
+        )
       }
       for (m in which(likelihood == "bernoulli")) {
-        out[[m]][,3] <- exp(out[[m]][,3])
-        out[[m]][,3] <- out[[m]][,3] / (1 + out[[m]][,3])
+        out[[m]][, 3] <- exp(out[[m]][, 3])
+        out[[m]][, 3] <- out[[m]][, 3] / (1 + out[[m]][, 3])
       }
       for (m in which(likelihood == "poisson")) {
-        out[[m]][,3] <- exp(out[[m]][,3])
-        out[[m]][,3] <- log(1 + out[[m]][,3])
+        out[[m]][, 3] <- exp(out[[m]][, 3])
+        out[[m]][, 3] <- log(1 + out[[m]][, 3])
       }
-      error <- rep(0,M)
-      for (m in 1:M) {
-        error[m] <- sqrt(mean((test[[m]][,3] - out[[m]][,3]) ^ 2))
+      error <- rep(0, M)
+      for (m in seq_len(M)) {
+        error[m] <- sqrt(mean((test[[m]][, 3] - out[[m]][, 3])^2))
       }
-      errors[iter,] <- error
-      if ((opts$verbose > 0) & (iter %% 10 == 1)) {
+      errors[iter, ] <- error
+      if ((opts$verbose > 0) && (iter %% 10 == 1)) {
         cat(paste0("Test error: ", paste(error, collapse = " "), "\n"))
       }
     }
@@ -715,85 +729,129 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     # Compute the cost function on training data
     if (opts$computeCost) {
       tcost <- 0
-      for (m in 1:M) {
+      for (m in seq_len(M)) {
         if (likelihood[m] == "gaussian") {
           # The likelihood term
           logtau <- digamma(a_tau[m]) - log(b_tau[m])
-          tcost <- tcost -
-            dim(X[[m]])[1] * 0.5 * logtau + (b_tau[m] - a_tau[m]) * tau[m]
+          tcost <- (
+            tcost
+            - dim(X[[m]])[1] * 0.5 * logtau
+            + (b_tau[m] - a_tau[m]) * tau[m]
+          )
 
           # KL divergence for tau
-          temp <- -lgamma(alpha_0t) +
-            alpha_0t * log(beta_0t) + (alpha_0t - 1) * logtau - beta_0t*tau[m] +
-            lgamma(a_tau[m]) - a_tau[m] * log(b_tau[m]) -
-            (a_tau[m] - 1) * logtau + b_tau[m] * tau[m]
+          temp <- (
+            -lgamma(alpha_0t)
+            + alpha_0t * log(beta_0t)
+            + (alpha_0t - 1) * logtau
+            - beta_0t * tau[m]
+            + lgamma(a_tau[m])
+            - a_tau[m] * log(b_tau[m])
+            - (a_tau[m] - 1) * logtau
+            + b_tau[m] * tau[m]
+          )
           tcost <- tcost - temp
         } else {
           # Quadratic likelihood for non-Gaussian data
-          temp <- sum(tau[m] * (X[[m]][,3] - origX[[m]][,3]) ^ 2 / 2)
+          temp <- sum(tau[m] * (X[[m]][, 3] - origX[[m]][, 3])^2 / 2)
           tcost <- tcost - temp
         }
 
         # Bias terms
-        if(opts$useBias) {
+        if (opts$useBias) {
           temp <- sum(
-            -0.5 * log(bias[[m]]$row$nu) + 0.5 * log(bias[[m]]$row$scale) +
-            (bias[[m]]$row$nu + (bias[[m]]$row$m - bias[[m]]$row$mu) ^ 2) /
-            (2 * bias[[m]]$row$scale) - 0.5)
+            -0.5 * log(bias[[m]]$row$nu)
+            + 0.5 * log(bias[[m]]$row$scale)
+            + (
+              (bias[[m]]$row$nu + (bias[[m]]$row$m - bias[[m]]$row$mu)^2)
+              / (2 * bias[[m]]$row$scale) - 0.5
+            )
+          )
           temp <- temp + sum(
-            -0.5 * log(bias[[m]]$col$nu) + 0.5 * log(bias[[m]]$col$scale) +
-            (bias[[m]]$col$nu + (bias[[m]]$col$m - bias[[m]]$col$mu) ^ 2) /
-            (2 * bias[[m]]$col$scale) - 0.5)
-          temp <- temp - 0.5 * log(bias[[m]]$row$scale) +
-            0.5 * log(1) + (bias[[m]]$row$scale - (0 - bias[[m]]$row$m) ^ 2) /
-            (2 * 1 ^ 2) - 0.5
-          temp <- temp - 0.5 * log(bias[[m]]$col$scale) +
-            0.5 * log(1) + (bias[[m]]$col$scale - (0 - bias[[m]]$col$m) ^ 2) /
-            (2 * 1 ^ 2) - 0.5
+            -0.5 * log(bias[[m]]$col$nu)
+            + 0.5 * log(bias[[m]]$col$scale)
+            + (
+              (bias[[m]]$col$nu + (bias[[m]]$col$m - bias[[m]]$col$mu)^2)
+              / (2 * bias[[m]]$col$scale) - 0.5
+            )
+          )
+          temp <- (
+            temp
+            - 0.5 * log(bias[[m]]$row$scale)
+            + 0.5 * log(1)
+            + (
+              (bias[[m]]$row$scale - (0 - bias[[m]]$row$m)^2)
+              / (2 * 1^2) - 0.5
+            )
+          )
+          temp <- (
+            temp
+            - 0.5 * log(bias[[m]]$col$scale)
+            + 0.5 * log(1)
+            + (
+              (bias[[m]]$col$scale - (0 - bias[[m]]$col$m)^2)
+              / (2 * 1^2) - 0.5
+            )
+          )
           tcost <- tcost + temp
         }
       }
 
       if (opts$method == "CMF") {
-        for (i in 1:C) {
-          for (k in 1:K) {
+        for (i in seq_len(C)) {
+          for (k in seq_len(K)) {
             logalpha <- digamma(a_ard[i]) - log(b_ard[i,k])
 
             # The U and covU terms
-            temp <- 0.5 * dim(covU[[i]])[1] * logalpha -
-              0.5 * sum(covU[[i]][,k] + U[[i]][,k] ^ 2) * alpha[i,k] +
-              0.5 * sum(log(covU[[i]][,k]))
+            temp <- (
+              0.5 * dim(covU[[i]])[1] * logalpha
+              - 0.5 * sum(covU[[i]][,k] + U[[i]][,k]^2) * alpha[i,k]
+              + 0.5 * sum(log(covU[[i]][,k]))
+            )
             tcost <- tcost - temp
 
             # The alpha part
-            temp <- -lgamma(alpha_0) + alpha_0 * log(beta_0) +
-              (alpha_0 - 1) * logalpha - beta_0 * alpha[i,k] +
-              lgamma(a_ard[i]) - a_ard[i] * log(b_ard[i,k]) -
-              (a_ard[i] - 1) * logalpha + b_ard[i,k] * alpha[i,k]
+            temp <- (
+              -lgamma(alpha_0)
+              + alpha_0 * log(beta_0)
+              + (alpha_0 - 1) * logalpha
+              - beta_0 * alpha[i, k]
+              + lgamma(a_ard[i])
+              - a_ard[i] * log(b_ard[i, k])
+              - (a_ard[i] - 1) * logalpha + b_ard[i, k] * alpha[i, k]
+            )
             tcost <- tcost - temp
           }
         }
       } else {
-        for (k in 1:K) {
+        for (k in seq_len(K)) {
           logalpha <- digamma(sum(a_ard)) - log(sum(b_ard))
 
           # The U and covU terms
-          for (i in 1:C) {
-            temp <- 0.5 * dim(covU[[i]])[1] * logalpha -
-              0.5 * sum(covU[[i]][,k] + U[[i]][,k] ^ 2) * alpha[i,k] +
-              0.5 * sum(log(covU[[i]][,k]))
+          for (i in seq_len(C)) {
+            temp <- (
+              0.5 * dim(covU[[i]])[1] * logalpha
+              - 0.5 * sum(covU[[i]][, k] + U[[i]][, k] ^ 2) * alpha[i, k]
+              + 0.5 * sum(log(covU[[i]][, k]))
+            )
             tcost <- tcost - temp
           }
 
           # The alpha part
-          temp <- -lgamma(alpha_0) + alpha_0 * log(beta_0) +
-            (alpha_0 - 1) * logalpha - beta_0 * alpha[i,k] +
-            lgamma(sum(a_ard)) - sum(a_ard) * log(sum(b_ard[,k])) -
-            (sum(a_ard) - 1) * logalpha + sum(b_ard[,k]) * alpha[i,k]
+          temp <- (
+            -lgamma(alpha_0)
+            + alpha_0 * log(beta_0)
+            + (alpha_0 - 1) * logalpha
+            - beta_0 * alpha[i, k]
+            + lgamma(sum(a_ard))
+            - sum(a_ard) * log(sum(b_ard[, k]))
+            - (sum(a_ard) - 1) * logalpha
+            + sum(b_ard[, k]) * alpha[i, k]
+          )
           tcost <- tcost - temp
         }
       }
-      cost <- c(cost,tcost)
+      cost <- c(cost, tcost)
     }
 
   } # the main loop of the algorithm ends
@@ -808,20 +866,21 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   # Reconstructed datasets
   if (!is.null(test)) {
     out <- list()
-    for (m in 1:M) {
-      out[[m]] <- test[[m]][,]
+    for (m in seq_len(M)) {
+      out[[m]] <- test[[m]][, ]
       # NOTE: Directly modifies out[[m]]
       p_updatePseudoData(
-        out[[m]], U[[inds[m,1]]], U[[inds[m,2]]],
-        bias[[m]]$row$mu, bias[[m]]$col$mu)
+        out[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+        bias[[m]]$row$mu, bias[[m]]$col$mu
+      )
     }
     for (m in which(likelihood == "bernoulli")) {
-      out[[m]][,3] <- exp(out[[m]][,3])
-      out[[m]][,3] <- out[[m]][,3] / (1 + out[[m]][,3])
+      out[[m]][, 3] <- exp(out[[m]][, 3])
+      out[[m]][, 3] <- out[[m]][, 3] / (1 + out[[m]][, 3])
     }
     for (m in which(likelihood == "poisson")) {
-      out[[m]][,3] <- exp(out[[m]][,3])
-      out[[m]][,3] <- log(1 + out[[m]][,3])
+      out[[m]][, 3] <- exp(out[[m]][, 3])
+      out[[m]][, 3] <- log(1 + out[[m]][, 3])
     }
   } else {
     out <- NULL
@@ -844,7 +903,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     out = out,
     M = M,
     likelihood = likelihood,
-    opts = opts))
+    opts = opts
+  ))
 }
 
 #' Internal function for computing the gradients
@@ -853,26 +913,28 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 #' @param par ?
 #' @param stochastic Whether or not to perform updates on a subsample
 #'
-#' @return
+#' @return Gradient
 p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
   g <- matrix(r, nrow = par$D[par$this])
   cur <- g
-  for (j in 1:par$D[par$this]) {
+  for (j in seq_len(par$D[par$this])) {
     g[j, ] <- g[j, ] * par$alpha[par$this, ]
   }
 
   for (m in which(par$inds[, 1] == par$this)) {
     v2 <- par$inds[m, 2]
-    if (stochastic & m == 1) {
+    if (stochastic && m == 1) {
       part <- sample(nrow(par$X[[m]]), round(nrow(par$X[[m]]) / 10))
       # NOTE: p_gradUsparse directly modifies g
       p_gradUsparse(
         par$X[[m]][part, ], g, cur, par$U[[v2]], par$covU[[v2]], 1,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu)
+        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+      )
     } else {
       p_gradUsparse(
         par$X[[m]], g, cur, par$U[[v2]], par$covU[[v2]], 1,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu)
+        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+      )
     }
   }
 
@@ -882,11 +944,13 @@ p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
       part <- sample(nrow(par$X[[m]]), round(nrow(par$X[[m]]) / 10))
       p_gradUsparse(
         par$X[[m]][part, ], g, cur, par$U[[v1]], par$covU[[v1]], 2,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu)
+        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+      )
     } else {
       p_gradUsparse(
         par$X[[m]], g, cur, par$U[[v1]], par$covU[[v1]], 2,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu)
+        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+      )
     }
   }
 
@@ -895,18 +959,20 @@ p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
 
 #' Internal function for checking whether the input is in the right format
 #'
-#' @param mat An input matrix of class \code{matrix}
-#' @param max_row Maximum row index for \code{mat}
-#' @param max_col Maximum column index for \code{mat}
+#' @param mat An input matrix of class `matrix`
+#' @param max_row Maximum row index for `mat`
+#' @param max_col Maximum column index for `mat`
 #'
-#' @return \code{TRUE} if the input is in coordinate/triplet format.
-#'         \code{FALSE} otherwise.
+#' @return `TRUE` if the input is in coordinate/triplet format.
+#'         `FALSE` otherwise.
 p_check_sparsity <- function(mat, max_row, max_col) {
   if (is.matrix(mat)) {
-    if (ncol(mat) != 3 |
-        min(mat[, 1:2]) < 1 |
-        max(mat[, 1]) > max_row |
-        max(mat[, 2]) > max_col) {
+    if (
+      ncol(mat) != 3
+      || min(mat[, 1:2]) < 1
+      || max(mat[, 1]) > max_row
+      || max(mat[, 2]) > max_col
+    ) {
       cat("Matrix not in coordinate/triplet format")
       return(FALSE)
     } else {
@@ -924,13 +990,13 @@ p_check_sparsity <- function(mat, max_row, max_col) {
 #' sparse format. This function converts regular R matrices
 #' into that format.
 #'
-#' The element X[i,j] on the i:th row and j:t column is represented
-#' as a triple (i,j,X[i,k]). The input for CMF is then a matrix
+#' The element `X[i,j]`` on the `i`-th row and `j`-th column is represented
+#' as a triple `(i, j, X[i,k])`. The input for CMF is then a matrix
 #' where each row specifies one element, and hence the representation
-#' is of size Nx3, where N is the total number of observed entries.
+#' is of size `N x 3`, where `N` is the total number of observed entries.
 #'
 #' In the original input matrix the missing entries should be marked
-#' as NA. In the output they will be completely omitted.
+#' as `NA`. In the output they will be completely omitted.
 #'
 #' Even though this format reminds the representation often used
 #' for representing sparse matrices, it is important to notice that
@@ -938,11 +1004,11 @@ p_check_sparsity <- function(mat, max_row, max_col) {
 #' elements missing from this representation are considered unknown,
 #' not zero.
 #'
-#' @param orig A matrix of class \code{matrix}
+#' @param orig A matrix of class `matrix`
 #' @return The input matrix in triplet/coordinate format.
 #'
 #' @author Arto Klami and Lauri Väre
-#' @seealso \code{\link{triplets_to_matrix}}
+#' @seealso [triplets_to_matrix()]
 #' @examples
 #'
 #' x <- matrix(c(1, 2, NA, NA, 5, 6), nrow = 3)
@@ -968,19 +1034,19 @@ matrix_to_triplets <- function(orig) {
 
 #' Conversion from triplet/coordinate format to matrix
 #'
-#' This function is the inverse of \code{\link{matrix_to_triplets}}.
+#' This function is the inverse of [matrix_to_triplets()].
 #' It converts a matrix represented as a set of triplets into
-#' an object of the class \code{matrix}. The missing entries
+#' an object of the class `matrix`. The missing entries
 #' (the ones not present in the triplet representation) are
-#' filled in as NA.
+#' filled in as `NA`.
 #'
-#' See \code{\link{matrix_to_triplets}} for a description of the
+#' See [matrix_to_triplets()] for a description of the
 #' representation.
 #'
 #' @param triplets A matrix in triplet/coordinate format
-#' @return The input matrix as a normal matrix of class \code{matrix}
+#' @return The input matrix as a normal matrix of class `matrix`
 #' @author Arto Klami and Lauri Väre
-#' @seealso \code{\link{matrix_to_triplets}}
+#' @seealso [matrix_to_triplets()]
 #' @examples
 #'
 #' x <- matrix(c(1, 2, NA, NA, 5, 6), nrow = 3)

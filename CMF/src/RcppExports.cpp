@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // p_gradUsparse
-void p_gradUsparse(NumericMatrix Xm, NumericMatrix Gm, NumericMatrix CUm, NumericMatrix OUm, NumericMatrix Cm, NumericVector I, NumericVector T, NumericVector Rowm, NumericVector Colm);
-RcppExport SEXP _CMF_p_gradUsparse(SEXP XmSEXP, SEXP GmSEXP, SEXP CUmSEXP, SEXP OUmSEXP, SEXP CmSEXP, SEXP ISEXP, SEXP TSEXP, SEXP RowmSEXP, SEXP ColmSEXP) {
+void p_gradUsparse(NumericMatrix Xm, NumericMatrix Gm, NumericMatrix CUm, NumericMatrix OUm, NumericMatrix Cm, int idx, double tau, NumericVector Rowm, NumericVector Colm);
+RcppExport SEXP _CMF_p_gradUsparse(SEXP XmSEXP, SEXP GmSEXP, SEXP CUmSEXP, SEXP OUmSEXP, SEXP CmSEXP, SEXP idxSEXP, SEXP tauSEXP, SEXP RowmSEXP, SEXP ColmSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type Xm(XmSEXP);
@@ -20,11 +20,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type CUm(CUmSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type OUm(OUmSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type Cm(CmSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type I(ISEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type T(TSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type Rowm(RowmSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type Colm(ColmSEXP);
-    p_gradUsparse(Xm, Gm, CUm, OUm, Cm, I, T, Rowm, Colm);
+    p_gradUsparse(Xm, Gm, CUm, OUm, Cm, idx, tau, Rowm, Colm);
     return R_NilValue;
 END_RCPP
 }
@@ -43,7 +43,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // p_updateTau
-NumericVector p_updateTau(NumericMatrix Xm, NumericMatrix U1m, NumericMatrix U2m, NumericMatrix cov1m, NumericMatrix cov2m, NumericVector Rv, NumericVector Cv, NumericVector nu1v, NumericVector nu2v);
+double p_updateTau(NumericMatrix Xm, NumericMatrix U1m, NumericMatrix U2m, NumericMatrix cov1m, NumericMatrix cov2m, NumericVector Rv, NumericVector Cv, NumericVector nu1v, NumericVector nu2v);
 RcppExport SEXP _CMF_p_updateTau(SEXP XmSEXP, SEXP U1mSEXP, SEXP U2mSEXP, SEXP cov1mSEXP, SEXP cov2mSEXP, SEXP RvSEXP, SEXP CvSEXP, SEXP nu1vSEXP, SEXP nu2vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -62,32 +62,32 @@ BEGIN_RCPP
 END_RCPP
 }
 // p_updateMean
-List p_updateMean(NumericMatrix Xm, NumericMatrix U1m, NumericMatrix U2m, NumericVector I, NumericVector Mv);
-RcppExport SEXP _CMF_p_updateMean(SEXP XmSEXP, SEXP U1mSEXP, SEXP U2mSEXP, SEXP ISEXP, SEXP MvSEXP) {
+List p_updateMean(NumericMatrix Xm, NumericMatrix U1m, NumericMatrix U2m, int idx, NumericVector Mv);
+RcppExport SEXP _CMF_p_updateMean(SEXP XmSEXP, SEXP U1mSEXP, SEXP U2mSEXP, SEXP idxSEXP, SEXP MvSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type Xm(XmSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type U1m(U1mSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type U2m(U2mSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type I(ISEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type Mv(MvSEXP);
-    rcpp_result_gen = Rcpp::wrap(p_updateMean(Xm, U1m, U2m, I, Mv));
+    rcpp_result_gen = Rcpp::wrap(p_updateMean(Xm, U1m, U2m, idx, Mv));
     return rcpp_result_gen;
 END_RCPP
 }
 // p_covUsparse
-void p_covUsparse(NumericMatrix Xm, NumericMatrix Cm, NumericMatrix OUm, NumericMatrix OCm, NumericVector I, NumericVector T);
-RcppExport SEXP _CMF_p_covUsparse(SEXP XmSEXP, SEXP CmSEXP, SEXP OUmSEXP, SEXP OCmSEXP, SEXP ISEXP, SEXP TSEXP) {
+void p_covUsparse(NumericMatrix Xm, NumericMatrix Cm, NumericMatrix OUm, NumericMatrix OCm, int idx, double tau);
+RcppExport SEXP _CMF_p_covUsparse(SEXP XmSEXP, SEXP CmSEXP, SEXP OUmSEXP, SEXP OCmSEXP, SEXP idxSEXP, SEXP tauSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type Xm(XmSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type Cm(CmSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type OUm(OUmSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type OCm(OCmSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type I(ISEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type T(TSEXP);
-    p_covUsparse(Xm, Cm, OUm, OCm, I, T);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    p_covUsparse(Xm, Cm, OUm, OCm, idx, tau);
     return R_NilValue;
 END_RCPP
 }
