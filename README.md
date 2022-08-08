@@ -18,4 +18,5 @@ See [Klami et al. (2013)](http://www.jmlr.org/papers/v14/klami13a.html) and
 for details on Bayesian CCA and GFA, respectively.
 
 **Original package authors**: Arto Klami and Lauri Väre
+
 **Maintainer**: Felix Held
