@@ -2,3 +2,4 @@
 *.so
 *.tar.gz
 .vscode/
+.DS_Store
