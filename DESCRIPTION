@@ -1,7 +1,7 @@
 Package: CMF
 Type: Package
 Title: Collective Matrix Factorization
-Version: 1.0.2.99
+Version: 1.0.3
 Date: 2022-08-09
 Authors@R: c(
 	person(given = "Arto", family = "Klami", email = "arto.klami@cs.helsinki.fi",
