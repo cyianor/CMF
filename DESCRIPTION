@@ -20,8 +20,8 @@ Description: Collective matrix factorization (CMF) finds joint low-rank
 	analysis (CCA) and group factor analysis (GFA) models, both of which are
 	special cases of CMF. This is likely to be useful for people looking for
 	CCA and GFA solutions supporting missing data and non-Gaussian likelihoods.
-	See Klami et al. (2013) <http://www.jmlr.org/papers/v14/klami13a.html> and
-	Virtanen et al. (2012) <http://proceedings.mlr.press/v22/virtanen12.html>
+	See Klami et al. (2013) <https://research.cs.aalto.fi/pml/online-papers/klami13a.pdf>
+	and	Virtanen et al. (2012) <http://proceedings.mlr.press/v22/virtanen12.html>
 	for details on Bayesian CCA and GFA, respectively.
 License: GPL (>= 2)
 Imports: stats
