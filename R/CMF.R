@@ -235,20 +235,22 @@ getCMFopts <- function() {
   prior.alpha_0 <- prior.beta_0 <- 1
   prior.alpha_0t <- prior.beta_0t <- 0.001
 
-  return(list(init.tau = init.tau,
-              init.alpha = init.alpha,
-              grad.iter = grad.iter,
-              iter.max = iter.max,
-              verbose = verbose,
-              computeCost = computeCost,
-              grad.reg = grad.reg,
-              grad.max = grad.max,
-              useBias = useBias,
-              method = method,
-              prior.alpha_0 = prior.alpha_0,
-              prior.beta_0 = prior.beta_0,
-              prior.alpha_0t = prior.alpha_0t,
-              prior.beta_0t = prior.beta_0t))
+  return(list(
+    init.tau = init.tau,
+    init.alpha = init.alpha,
+    grad.iter = grad.iter,
+    iter.max = iter.max,
+    verbose = verbose,
+    computeCost = computeCost,
+    grad.reg = grad.reg,
+    grad.max = grad.max,
+    useBias = useBias,
+    method = method,
+    prior.alpha_0 = prior.alpha_0,
+    prior.beta_0 = prior.beta_0,
+    prior.alpha_0t = prior.alpha_0t,
+    prior.beta_0t = prior.beta_0t
+  ))
 }
 
 
@@ -296,7 +298,8 @@ predictCMF <- function(X, model) {
     # NOTE: Directly modifies out[[m]]
     p_updatePseudoData(
       out[[m]], model$U[[inds[m, 1]]], model$U[[inds[m, 2]]],
-      model$bias[[m]]$row$mu, model$bias[[m]]$col$mu)
+      model$bias[[m]]$row$mu, model$bias[[m]]$col$mu
+    )
   }
   for (m in which(model$likelihood == "bernoulli")) {
     out[[m]][, 3] <- exp(out[[m]][, 3])
@@ -407,7 +410,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     if (!all(inds[, 1] == 1)) {
       stop(paste0(
         "GFA requires all matrices to share the first entity set, ",
-        "since it is a multi-view learning method."))
+        "since it is a multi-view learning method."
+      ))
     }
   }
 
@@ -553,7 +557,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       # Update U itself
       par <- list(
         D = D, alpha = alpha, tau = tau,
-        X = X, U = U, covU = covU, inds = inds, bias = bias)
+        X = X, U = U, covU = covU, inds = inds, bias = bias
+      )
       par$this <- i
 
       # The inverse Hessian happens to be the covariance
