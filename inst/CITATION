@@ -1,0 +1,9 @@
+## gCMF article
+bibentry(bibtype = "Article",
+         title = "Group-sparse embeddings in collective matrix factorization",
+         author = c(person("Arto", "Klami"),
+                    person("Guillaume", "Bouchard"),
+                    person("Abishek", "Tripathi")),
+         year = "2013",
+         journal = "arXiv:1312.5921",
+         url = "https://arxiv.org/abs/1312.5921")
