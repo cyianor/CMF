@@ -30,3 +30,4 @@ Encoding: UTF-8
 NeedsCompilation: yes
 RoxygenNote: 7.2.1
 Roxygen: list(markdown = TRUE)
+BugReports: https://github.com/cyianor/CMF/issues
