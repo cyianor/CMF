@@ -19,3 +19,21 @@ for details on Bayesian CCA and GFA, respectively.
 
 - **Original package authors**: Arto Klami and Lauri Väre
 - **Maintainer**: Felix Held
+
+## Install development version
+
+To install the development version from GitHub, run
+
+```r
+devtools::install_github("cyianor/CMF")
+```
+
+New features will be available here first.
+
+## Install CRAN version
+
+To install the official CRAN version it is enough to run
+
+```r
+install.packages("CMF")
+```
