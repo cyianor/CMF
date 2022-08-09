@@ -14,11 +14,10 @@ extern "C" SEXP _CMF_p_gradUsparse(SEXP Xm, SEXP Gm, SEXP CUm, SEXP OUm, SEXP Cm
   END_CPP11
 }
 // helper.cpp
-void p_updatePseudoData(doubles_matrix<> Xm, const doubles_matrix<> U1m, const doubles_matrix<> U2m, const doubles Rv, const doubles Cv);
-extern "C" SEXP _CMF_p_updatePseudoData(SEXP Xm, SEXP U1m, SEXP U2m, SEXP Rv, SEXP Cv) {
+doubles p_updatePseudoData(const integers_matrix<> indices, const doubles_matrix<> U1m, const doubles_matrix<> U2m, const doubles Rv, const doubles Cv);
+extern "C" SEXP _CMF_p_updatePseudoData(SEXP indices, SEXP U1m, SEXP U2m, SEXP Rv, SEXP Cv) {
   BEGIN_CPP11
-    p_updatePseudoData(cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Xm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U1m), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U2m), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Rv), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Cv));
-    return R_NilValue;
+    return cpp11::as_sexp(p_updatePseudoData(cpp11::as_cpp<cpp11::decay_t<const integers_matrix<>>>(indices), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U1m), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U2m), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Rv), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Cv)));
   END_CPP11
 }
 // helper.cpp

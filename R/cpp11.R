@@ -4,8 +4,8 @@ p_gradUsparse <- function(Xm, Gm, CUm, OUm, Cm, idx, tau, Rowm, Colm) {
   invisible(.Call(`_CMF_p_gradUsparse`, Xm, Gm, CUm, OUm, Cm, idx, tau, Rowm, Colm))
 }
 
-p_updatePseudoData <- function(Xm, U1m, U2m, Rv, Cv) {
-  invisible(.Call(`_CMF_p_updatePseudoData`, Xm, U1m, U2m, Rv, Cv))
+p_updatePseudoData <- function(indices, U1m, U2m, Rv, Cv) {
+  .Call(`_CMF_p_updatePseudoData`, indices, U1m, U2m, Rv, Cv)
 }
 
 p_updateTau <- function(Xm, U1m, U2m, cov1m, cov2m, Rv, Cv, nu1v, nu2v) {

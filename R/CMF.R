@@ -30,7 +30,7 @@
 #'
 #' @author Arto Klami \email{arto.klami@@cs.helsinki.fi} and Lauri Väre
 #'
-#' Maintainer: Felix Held \email{felix.held@@chalmers.se}
+#' Maintainer: Felix Held \email{felix.held@@gmail.se}
 #'
 #' @references
 #' Arto Klami, Guillaume Bouchard, and Abhishek Tripathi.
@@ -203,9 +203,9 @@ getCMFopts <- function() {
   # The algorithm is Newton-Raphson with diagonal Hessian
   # and successive under-relaxation (= Richardson extrapolation),
   # so that
-  #  theta_new = grad.reg*theta_old + (1-grad.reg)(theta_old - g/h)
-  #  where g is gradient and h is Hessian. grad.reg should be between 0 and 1
-  #  to stabilize the algorithm. 0 overshoots, 1 does not update anything.
+  #   theta_new = grad.reg*theta_old + (1-grad.reg)(theta_old - g/h)
+  # where g is gradient and h is Hessian. grad.reg should be between 0 and 1
+  # to stabilize the algorithm. 0 overshoots, 1 does not update anything.
   #
   # If grad.max < Inf, the step lengths are capped at grad.Max
   # grad.iter tells how many gradient steps to take within each update.
@@ -294,12 +294,12 @@ predictCMF <- function(X, model) {
 
   out <- list()
   for (m in 1:model$M) {
-    out[[m]] <- X[[m]][, ]
-    # NOTE: Directly modifies out[[m]]
-    p_updatePseudoData(
-      out[[m]], model$U[[inds[m, 1]]], model$U[[inds[m, 2]]],
+    indices <- matrix(as.integer(X[[m]][, 1:2]), ncol = 2)
+    xi <- p_updatePseudoData(
+      indices, model$U[[inds[m, 1]]], model$U[[inds[m, 2]]],
       model$bias[[m]]$row$mu, model$bias[[m]]$col$mu
     )
+    out[[m]] <- cbind(indices, xi)
   }
   for (m in which(model$likelihood == "bernoulli")) {
     out[[m]][, 3] <- exp(out[[m]][, 3])
@@ -405,6 +405,9 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     }
   }
 
+  # Store indices separately as integers
+  indices <- lapply(X, function(x) matrix(as.integer(x[, 1:2]), ncol = 2))
+
   if (opts$method == "GFA") {
     opts$useBias <- FALSE
     if (!all(inds[, 1] == 1)) {
@@ -418,11 +421,11 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   # Construct the index sets and the symmetric matrix
   #
   # X are lists of observed values
-  # M in the number of data sets
+  # M is the number of data sets
   # C is the number of itemsets
-  # D[i] is the size of the c:th itemset
-  # items[[inds[m,1]]] tells which samples correspond to rows in X[m]
-  # and items[[inds[m,2]]] is the same for columns
+  # D[i] is the size of the c-th itemset
+  # items[[inds[m, 1]]] tells which samples correspond to rows in X[m]
+  # and items[[inds[m, 2]]] is the same for columns
   M <- length(X)
   indvec <- as.vector(inds)
   types <- seq_len(max(indvec))
@@ -447,7 +450,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
                                           #   distribution
   a_ard <- alpha_0 + D / 2                # for ARD precisions
   tau <- rep(opts$init.tau, M)            # The mean noise precisions
-  a_tau <- alpha_0t + rep(0, M)           # The parameters of the Gamma
+  a_tau <- rep(alpha_0t, M)               # The parameters of the Gamma
                                           #   distribution
   for (m in seq_len(M)) {
      a_tau[m] <- a_tau[m] + nrow(X[[m]]) / 2
@@ -495,31 +498,30 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   }
 
   # Pseudo data
-  xi <- X
-  origX <- X
+  origX <- lapply(X, function(x) x[, 3])
   for (m in which(likelihood == "bernoulli")) {
     tau[m] <- 0.25
-    xi[[m]] <- X[[m]]
-    # NOTE: Directly modifies xi[[m]]
-    p_updatePseudoData(
-      xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
-      bias[[m]]$row$mu, bias[[m]]$col$mu)
-    X[[m]][, 3] <- xi[[m]][, 3] -
-      (1 / (1 + exp(-xi[[m]][, 3])) - origX[[m]][, 3]) / tau[m]
+    xi <- p_updatePseudoData(
+      indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+      bias[[m]]$row$mu, bias[[m]]$col$mu
+    )
+    X[[m]][, 3] <- (
+      xi - (1 / (1 + exp(-xi)) - origX[[m]]) / tau[m]
+    )
   }
 
   for (m in which(likelihood == "poisson")) {
-    xi[[m]] <- X[[m]]
     maxval <- max(X[[m]][, 3])
     # print(paste("Maximal count in view ",m," is ",maxval,
     #             "; consider clipping if this is very large.",sep=""))
     tau[m] <- 0.25 + 0.17 * maxval
-    p_updatePseudoData(
-      xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
-      bias[[m]]$row$mu, bias[[m]]$col$mu)
-    X[[m]][, 3] <- xi[[m]][, 3] -
-      (1 / (1 + exp(-xi[[m]][, 3])) *
-       (1 - origX[[m]][, 3] / log(1 + exp(xi[[m]][, 3])))) / tau[m]
+    xi <- p_updatePseudoData(
+      indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+      bias[[m]]$row$mu, bias[[m]]$col$mu
+    )
+    X[[m]][, 3] <- (
+      xi - 1 / (1 + exp(-xi)) * (1 - origX[[m]] / log(1 + exp(xi))) / tau[m]
+    )
   }
 
   cost <- vector()  # For storing the lower bounds
@@ -679,28 +681,22 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     #
     #print("Update pseudo data")
     for (m in which(likelihood == "bernoulli")) {
-      xi[[m]] <- X[[m]]
-      # NOTE: Directly modifies xi[[m]]
-      p_updatePseudoData(
-        xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+      xi <- p_updatePseudoData(
+        indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
         bias[[m]]$row$mu, bias[[m]]$col$mu
       )
       X[[m]][, 3] <- (
-        xi[[m]][, 3] - (1 / (1 + exp(-xi[[m]][, 3])) - origX[[m]][, 3]) / tau[m]
+        xi - (1 / (1 + exp(-xi)) - origX[[m]]) / tau[m]
       )
     }
 
     for (m in which(likelihood == "poisson")) {
-      xi[[m]] <- X[[m]]
-      p_updatePseudoData(
-        xi[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+      xi <- p_updatePseudoData(
+        indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
         bias[[m]]$row$mu, bias[[m]]$col$mu
       )
       X[[m]][, 3] <- (
-        xi[[m]][, 3] - (
-          1 / (1 + exp(-xi[[m]][, 3]))
-          * (1 - origX[[m]][, 3] / log(1 + exp(xi[[m]][, 3])))
-        ) / tau[m]
+        xi - 1 / (1 + exp(-xi)) * (1 - origX[[m]] / log(1 + exp(xi))) / tau[m]
       )
     }
 
@@ -710,26 +706,25 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     )
 
     if (!is.null(test)) {
-      out <- list()
+      pred <- list()
       for (m in seq_len(M)) {
-        out[[m]] <- test[[m]][, ]
-        # NOTE: Directly modifies out[[m]]
-        p_updatePseudoData(
-          out[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+        indices_test <- matrix(as.integer(test[[m]][, 1:2]), ncol = 2)
+        pred[[m]] <- p_updatePseudoData(
+          indices_test, U[[inds[m, 1]]], U[[inds[m, 2]]],
           bias[[m]]$row$mu, bias[[m]]$col$mu
         )
       }
       for (m in which(likelihood == "bernoulli")) {
-        out[[m]][, 3] <- exp(out[[m]][, 3])
-        out[[m]][, 3] <- out[[m]][, 3] / (1 + out[[m]][, 3])
+        pred[[m]] <- exp(pred[[m]])
+        pred[[m]] <- pred[[m]] / (1 + pred[[m]])
       }
       for (m in which(likelihood == "poisson")) {
-        out[[m]][, 3] <- exp(out[[m]][, 3])
-        out[[m]][, 3] <- log(1 + out[[m]][, 3])
+        pred[[m]] <- exp(pred[[m]])
+        pred[[m]] <- log(1 + pred[[m]])
       }
       error <- rep(0, M)
       for (m in seq_len(M)) {
-        error[m] <- sqrt(mean((test[[m]][, 3] - out[[m]][, 3])^2))
+        error[m] <- sqrt(mean((test[[m]][, 3] - pred[[m]])^2))
       }
       errors[iter, ] <- error
       if ((opts$verbose > 0) && (iter %% 10 == 1)) {
@@ -878,12 +873,13 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   if (!is.null(test)) {
     out <- list()
     for (m in seq_len(M)) {
-      out[[m]] <- test[[m]][, ]
+      indices_test <- matrix(as.integer(test[[m]][, 1:2]), ncol = 2)
       # NOTE: Directly modifies out[[m]]
-      p_updatePseudoData(
-        out[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+      xi <- p_updatePseudoData(
+        indices_test, U[[inds[m, 1]]], U[[inds[m, 2]]],
         bias[[m]]$row$mu, bias[[m]]$col$mu
       )
+      out[[m]] <- cbind(indices_test, xi)
     }
     for (m in which(likelihood == "bernoulli")) {
       out[[m]][, 3] <- exp(out[[m]][, 3])

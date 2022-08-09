@@ -50,29 +50,27 @@ using namespace cpp11;
   }
 }
 
-[[cpp11::register]] void p_updatePseudoData(doubles_matrix<> Xm,
-                                            const doubles_matrix<> U1m,
-                                            const doubles_matrix<> U2m, const doubles Rv,
-                                            const doubles Cv) {
-  // Modify Xm in-place
-  // orthogonal to cpp11's general assumption of doubles_matrix<> being non-writable
-  double* const pXm = REAL(Xm.data());
-
-  const size_t N = static_cast<size_t>(Xm.nrow());
+[[cpp11::register]] doubles p_updatePseudoData(const integers_matrix<> indices,
+                                               const doubles_matrix<> U1m,
+                                               const doubles_matrix<> U2m,
+                                               const doubles Rv, const doubles Cv) {
+  const int N = indices.nrow();
   const int K = U1m.ncol();
 
-  for (size_t n = 0; n < N; n++) {
-    const int r = static_cast<int>(pXm[n]) - 1;
-    const int c = static_cast<int>(pXm[n + N]) - 1;
+  writable::doubles out(N);
+
+  for (int n = 0; n < N; n++) {
+    const int r = indices(n, 0) - 1;
+    const int c = indices(n, 1) - 1;
 
     double tmp = 0.0;
     for (int k = 0; k < K; k++) {
       tmp += U1m(r, k) * U2m(c, k);
     }
-    tmp += Rv[r] + Cv[c];
-
-    pXm[n + 2 * N] = tmp;
+    out[n] = tmp + Rv[r] + Cv[c];
   }
+
+  return out;
 }
 
 [[cpp11::register]] double p_updateTau(
@@ -84,8 +82,8 @@ using namespace cpp11;
   double out = 0.0;
 
   for (int n = 0; n < N; n++) {
-    const int r = Xm(n, 0) - 1;
-    const int c = Xm(n, 1) - 1;
+    const int r = static_cast<int>(Xm(n, 0)) - 1;
+    const int c = static_cast<int>(Xm(n, 1)) - 1;
 
     double tmp = 0.0;
     for (int k = 0; k < K; k++) {
