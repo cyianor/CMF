@@ -1,19 +1,16 @@
-#include <cpp11/matrix.hpp>
-#include <cpp11/integers.hpp>
 #include <cpp11/doubles.hpp>
+#include <cpp11/integers.hpp>
 #include <cpp11/list.hpp>
+#include <cpp11/matrix.hpp>
 using namespace cpp11;
 
-[[cpp11::register]] void p_gradUsparse(const doubles_matrix<> Xm,
-                                       doubles_matrix<> Gm,
+[[cpp11::register]] void p_gradUsparse(const doubles_matrix<> Xm, doubles_matrix<> Gm,
                                        const doubles_matrix<> CUm,
                                        const doubles_matrix<> OUm,
-                                       const doubles_matrix<> Cm,
-                                       const int idx,
-                                       const double tau,
-                                       const doubles Rowm,
+                                       const doubles_matrix<> Cm, const int idx,
+                                       const double tau, const doubles Rowm,
                                        const doubles Colm) {
-  double *const pGm = REAL(Gm.data());
+  double* const pGm = REAL(Gm.data());
 
   const int N = Xm.nrow();
   const int K = Gm.ncol();
@@ -24,8 +21,8 @@ using namespace cpp11;
     for (int n = 0; n < N; n++) {
       const int r = Xm(n, 0) - 1;
       const int c = Xm(n, 1) - 1;
-      double tmp = 0.0;
 
+      double tmp = 0.0;
       for (int k = 0; k < K; k++) {
         tmp += CUm(r, k) * OUm(c, k);
       }
@@ -39,8 +36,8 @@ using namespace cpp11;
     for (int n = 0; n < N; n++) {
       const int r = Xm(n, 0) - 1;
       const int c = Xm(n, 1) - 1;
-      double tmp = 0.0;
 
+      double tmp = 0.0;
       for (int k = 0; k < K; k++) {
         tmp += CUm(c, k) * OUm(r, k);
       }
@@ -55,12 +52,11 @@ using namespace cpp11;
 
 [[cpp11::register]] void p_updatePseudoData(doubles_matrix<> Xm,
                                             const doubles_matrix<> U1m,
-                                            const doubles_matrix<> U2m,
-                                            const doubles Rv,
+                                            const doubles_matrix<> U2m, const doubles Rv,
                                             const doubles Cv) {
   // Modify Xm in-place
   // orthogonal to cpp11's general assumption of doubles_matrix<> being non-writable
-  double *const pXm = REAL(Xm.data());
+  double* const pXm = REAL(Xm.data());
 
   const size_t N = static_cast<size_t>(Xm.nrow());
   const int K = U1m.ncol();
@@ -68,8 +64,8 @@ using namespace cpp11;
   for (size_t n = 0; n < N; n++) {
     const int r = static_cast<int>(pXm[n]) - 1;
     const int c = static_cast<int>(pXm[n + N]) - 1;
-    double tmp = 0.0;
 
+    double tmp = 0.0;
     for (int k = 0; k < K; k++) {
       tmp += U1m(r, k) * U2m(c, k);
     }
@@ -79,15 +75,10 @@ using namespace cpp11;
   }
 }
 
-[[cpp11::register]] double p_updateTau(const doubles_matrix<> Xm,
-                                       const doubles_matrix<> U1m,
-                                       const doubles_matrix<> U2m,
-                                       const doubles_matrix<> cov1m,
-                                       const doubles_matrix<> cov2m,
-                                       const doubles Rv,
-                                       const doubles Cv,
-                                       const doubles nu1v,
-                                       const doubles nu2v) {
+[[cpp11::register]] double p_updateTau(
+    const doubles_matrix<> Xm, const doubles_matrix<> U1m, const doubles_matrix<> U2m,
+    const doubles_matrix<> cov1m, const doubles_matrix<> cov2m, const doubles Rv,
+    const doubles Cv, const doubles nu1v, const doubles nu2v) {
   const int N = Xm.nrow();
   const int K = U1m.ncol();
   double out = 0.0;
@@ -95,8 +86,8 @@ using namespace cpp11;
   for (int n = 0; n < N; n++) {
     const int r = Xm(n, 0) - 1;
     const int c = Xm(n, 1) - 1;
-    double tmp = 0.0;
 
+    double tmp = 0.0;
     for (int k = 0; k < K; k++) {
       tmp += U1m(r, k) * U2m(c, k);
     }
@@ -104,9 +95,8 @@ using namespace cpp11;
     tmp = Xm(n, 2) - tmp;
     tmp = tmp * tmp;
     for (int k = 0; k < K; k++) {
-      tmp += cov1m(r, k) * U2m(c, k) * U2m(c, k)
-             + U1m(r, k) * U1m(r, k) * cov2m(c, k)
-             + cov1m(r, k) * cov2m(c, k);
+      tmp += cov1m(r, k) * U2m(c, k) * U2m(c, k) + U1m(r, k) * U1m(r, k) * cov2m(c, k) +
+             cov1m(r, k) * cov2m(c, k);
     }
     tmp += nu1v[r] + nu2v[c];
 
@@ -118,8 +108,7 @@ using namespace cpp11;
 
 [[cpp11::register]] sexp p_updateMean(const doubles_matrix<> Xm,
                                       const doubles_matrix<> U1m,
-                                      const doubles_matrix<> U2m,
-                                      const int idx,
+                                      const doubles_matrix<> U2m, const int idx,
                                       const doubles Mv) {
   const int N = Xm.nrow();
   const int K = U1m.ncol();
@@ -136,12 +125,11 @@ using namespace cpp11;
   for (int n = 0; n < N; n++) {
     const int r = Xm(n, 0) - 1;
     const int c = Xm(n, 1) - 1;
-    double tmp = 0.0;
 
+    double tmp = 0.0;
     for (int k = 0; k < K; k++) {
       tmp += U1m(r, k) * U2m(c, k);
     }
-
     if (idx == 1) {
       tmp = Xm(n, 2) - tmp - Mv[c];
       Nv[r] += tmp;
@@ -153,18 +141,14 @@ using namespace cpp11;
     }
   }
 
-  return writable::list({
-    "sum"_nm = Nv, "count"_nm = Cv
-  });
+  return writable::list({"sum"_nm = Nv, "count"_nm = Cv});
 }
 
-[[cpp11::register]] void p_covUsparse(const doubles_matrix<> Xm,
-                                      doubles_matrix<> Cm,
+[[cpp11::register]] void p_covUsparse(const doubles_matrix<> Xm, doubles_matrix<> Cm,
                                       const doubles_matrix<> OUm,
-                                      const doubles_matrix<> OCm,
-                                      const int idx,
+                                      const doubles_matrix<> OCm, const int idx,
                                       const double tau) {
-  double *const pCm = REAL(Cm.data());
+  double* const pCm = REAL(Cm.data());
 
   const int N = Xm.nrow();
   const int K = Cm.ncol();
