@@ -7,7 +7,7 @@ Authors@R: c(
 	person(given = "Arto", family = "Klami", email = "arto.klami@cs.helsinki.fi",
 		   role = "aut"),
 	person(given = "Lauri", family = "Väre", role = "aut"),
-	person(given = "Felix", family = "Held", email = "felix.held@chalmers.se",
+	person(given = "Felix", family = "Held", email = "felix.held@gmail.com",
 		   role = c("ctb", "cre")))
 Description: Collective matrix factorization (CMF) finds joint low-rank
 	representations for a collection of matrices with shared row or column
