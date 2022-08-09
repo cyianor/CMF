@@ -6,18 +6,18 @@
 #include <R_ext/Visibility.h>
 
 // helper.cpp
-void p_gradUsparse(const doubles_matrix<> Xm, doubles_matrix<> Gm_, const doubles_matrix<> CUm, const doubles_matrix<> OUm, const doubles_matrix<> Cm, const int idx, const double tau, const doubles Rowm, const doubles Colm);
-extern "C" SEXP _CMF_p_gradUsparse(SEXP Xm, SEXP Gm_, SEXP CUm, SEXP OUm, SEXP Cm, SEXP idx, SEXP tau, SEXP Rowm, SEXP Colm) {
+void p_gradUsparse(const doubles_matrix<> Xm, doubles_matrix<> Gm, const doubles_matrix<> CUm, const doubles_matrix<> OUm, const doubles_matrix<> Cm, const int idx, const double tau, const doubles Rowm, const doubles Colm);
+extern "C" SEXP _CMF_p_gradUsparse(SEXP Xm, SEXP Gm, SEXP CUm, SEXP OUm, SEXP Cm, SEXP idx, SEXP tau, SEXP Rowm, SEXP Colm) {
   BEGIN_CPP11
-    p_gradUsparse(cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(Xm), cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Gm_), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(CUm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(OUm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(Cm), cpp11::as_cpp<cpp11::decay_t<const int>>(idx), cpp11::as_cpp<cpp11::decay_t<const double>>(tau), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Rowm), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Colm));
+    p_gradUsparse(cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(Xm), cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Gm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(CUm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(OUm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(Cm), cpp11::as_cpp<cpp11::decay_t<const int>>(idx), cpp11::as_cpp<cpp11::decay_t<const double>>(tau), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Rowm), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Colm));
     return R_NilValue;
   END_CPP11
 }
 // helper.cpp
-void p_updatePseudoData(doubles_matrix<> Xm_, const doubles_matrix<> U1m, const doubles_matrix<> U2m, const doubles Rv, const doubles Cv);
-extern "C" SEXP _CMF_p_updatePseudoData(SEXP Xm_, SEXP U1m, SEXP U2m, SEXP Rv, SEXP Cv) {
+void p_updatePseudoData(doubles_matrix<> Xm, const doubles_matrix<> U1m, const doubles_matrix<> U2m, const doubles Rv, const doubles Cv);
+extern "C" SEXP _CMF_p_updatePseudoData(SEXP Xm, SEXP U1m, SEXP U2m, SEXP Rv, SEXP Cv) {
   BEGIN_CPP11
-    p_updatePseudoData(cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Xm_), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U1m), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U2m), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Rv), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Cv));
+    p_updatePseudoData(cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Xm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U1m), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(U2m), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Rv), cpp11::as_cpp<cpp11::decay_t<const doubles>>(Cv));
     return R_NilValue;
   END_CPP11
 }
@@ -36,10 +36,10 @@ extern "C" SEXP _CMF_p_updateMean(SEXP Xm, SEXP U1m, SEXP U2m, SEXP idx, SEXP Mv
   END_CPP11
 }
 // helper.cpp
-void p_covUsparse(const doubles_matrix<> Xm, doubles_matrix<> Cm_, const doubles_matrix<> OUm, const doubles_matrix<> OCm, const int idx, const double tau);
-extern "C" SEXP _CMF_p_covUsparse(SEXP Xm, SEXP Cm_, SEXP OUm, SEXP OCm, SEXP idx, SEXP tau) {
+void p_covUsparse(const doubles_matrix<> Xm, doubles_matrix<> Cm, const doubles_matrix<> OUm, const doubles_matrix<> OCm, const int idx, const double tau);
+extern "C" SEXP _CMF_p_covUsparse(SEXP Xm, SEXP Cm, SEXP OUm, SEXP OCm, SEXP idx, SEXP tau) {
   BEGIN_CPP11
-    p_covUsparse(cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(Xm), cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Cm_), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(OUm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(OCm), cpp11::as_cpp<cpp11::decay_t<const int>>(idx), cpp11::as_cpp<cpp11::decay_t<const double>>(tau));
+    p_covUsparse(cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(Xm), cpp11::as_cpp<cpp11::decay_t<doubles_matrix<>>>(Cm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(OUm), cpp11::as_cpp<cpp11::decay_t<const doubles_matrix<>>>(OCm), cpp11::as_cpp<cpp11::decay_t<const int>>(idx), cpp11::as_cpp<cpp11::decay_t<const double>>(tau));
     return R_NilValue;
   END_CPP11
 }

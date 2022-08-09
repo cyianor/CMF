@@ -5,7 +5,7 @@
 using namespace cpp11;
 
 [[cpp11::register]] void p_gradUsparse(const doubles_matrix<> Xm,
-                                       doubles_matrix<> Gm_,
+                                       doubles_matrix<> Gm,
                                        const doubles_matrix<> CUm,
                                        const doubles_matrix<> OUm,
                                        const doubles_matrix<> Cm,
@@ -13,7 +13,7 @@ using namespace cpp11;
                                        const double tau,
                                        const doubles Rowm,
                                        const doubles Colm) {
-  writable::doubles_matrix<> Gm(std::move(Gm_));
+  double *const pGm = REAL(Gm.data());
 
   const int N = Xm.nrow();
   const int K = Gm.ncol();
@@ -32,7 +32,7 @@ using namespace cpp11;
       tmp += -Xm(n, 2) + Rowm[r] + Colm[c];
 
       for (int k = 0; k < K; k++) {
-        Gm(r, k) += tau * (tmp * OUm(c, k) + CUm(r, k) * Cm(c, k));
+        pGm[r + k * K] += tau * (tmp * OUm(c, k) + CUm(r, k) * Cm(c, k));
       }
     }
   } else {
@@ -47,25 +47,27 @@ using namespace cpp11;
       tmp += -Xm(n, 2) + Rowm[r] + Colm[c];
 
       for (int k = 0; k < K; k++) {
-        Gm(c, k) += tau * (tmp * OUm(r, k) + CUm(c, k) * Cm(r, k));
+        pGm[c + k * K] += tau * (tmp * OUm(r, k) + CUm(c, k) * Cm(r, k));
       }
     }
   }
 }
 
-[[cpp11::register]] void p_updatePseudoData(doubles_matrix<> Xm_,
+[[cpp11::register]] void p_updatePseudoData(doubles_matrix<> Xm,
                                             const doubles_matrix<> U1m,
                                             const doubles_matrix<> U2m,
                                             const doubles Rv,
                                             const doubles Cv) {
-  writable::doubles_matrix<> Xm(std::move(Xm_));
+  // Modify Xm in-place
+  // orthogonal to cpp11's general assumption of doubles_matrix<> being non-writable
+  double *const pXm = REAL(Xm.data());
 
-  const int N = Xm.nrow();
+  const size_t N = static_cast<size_t>(Xm.nrow());
   const int K = U1m.ncol();
 
-  for (int n = 0; n < N; n++) {
-    const int r = Xm(n, 0) - 1;
-    const int c = Xm(n, 1) - 1;
+  for (size_t n = 0; n < N; n++) {
+    const int r = static_cast<int>(pXm[n]) - 1;
+    const int c = static_cast<int>(pXm[n + N]) - 1;
     double tmp = 0.0;
 
     for (int k = 0; k < K; k++) {
@@ -73,7 +75,7 @@ using namespace cpp11;
     }
     tmp += Rv[r] + Cv[c];
 
-    Xm(n, 2) = tmp;
+    pXm[n + 2 * N] = tmp;
   }
 }
 
@@ -157,12 +159,12 @@ using namespace cpp11;
 }
 
 [[cpp11::register]] void p_covUsparse(const doubles_matrix<> Xm,
-                                      doubles_matrix<> Cm_,
+                                      doubles_matrix<> Cm,
                                       const doubles_matrix<> OUm,
                                       const doubles_matrix<> OCm,
                                       const int idx,
                                       const double tau) {
-  writable::doubles_matrix<> Cm(std::move(Cm_));
+  double *const pCm = REAL(Cm.data());
 
   const int N = Xm.nrow();
   const int K = Cm.ncol();
@@ -173,7 +175,7 @@ using namespace cpp11;
       const int c = Xm(n, 1) - 1;
 
       for (int k = 0; k < K; k++) {
-        Cm(r, k) += tau * (OUm(c, k) * OUm(c, k) + OCm(c, k));
+        pCm[r + k * K] += tau * (OUm(c, k) * OUm(c, k) + OCm(c, k));
       }
     }
   } else {
@@ -182,7 +184,7 @@ using namespace cpp11;
       const int c = Xm(n, 1) - 1;
 
       for (int k = 0; k < K; k++) {
-        Cm(c, k) += tau * (OUm(r, k) * OUm(r, k) + OCm(r, k));
+        pCm[c + k * K] += tau * (OUm(r, k) * OUm(r, k) + OCm(r, k));
       }
     }
   }
