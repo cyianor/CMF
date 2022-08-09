@@ -26,6 +26,7 @@ Description: Collective matrix factorization (CMF) finds joint low-rank
 License: GPL (>= 2)
 Imports: stats
 LinkingTo: cpp11
+SystemRequirements: C++11
 Encoding: UTF-8
 NeedsCompilation: yes
 RoxygenNote: 7.2.1
