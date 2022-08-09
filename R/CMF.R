@@ -759,7 +759,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
           tcost <- tcost - temp
         } else {
           # Quadratic likelihood for non-Gaussian data
-          temp <- sum(tau[m] * (X[[m]][, 3] - origX[[m]][, 3])^2 / 2)
+          temp <- sum(tau[m] * (X[[m]][, 3] - origX[[m]])^2 / 2)
           tcost <- tcost - temp
         }
 
@@ -874,7 +874,6 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     out <- list()
     for (m in seq_len(M)) {
       indices_test <- matrix(as.integer(test[[m]][, 1:2]), ncol = 2)
-      # NOTE: Directly modifies out[[m]]
       xi <- p_updatePseudoData(
         indices_test, U[[inds[m, 1]]], U[[inds[m, 2]]],
         bias[[m]]$row$mu, bias[[m]]$col$mu
