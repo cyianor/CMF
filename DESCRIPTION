@@ -25,7 +25,7 @@ Description: Collective matrix factorization (CMF) finds joint low-rank
 	for details on Bayesian CCA and GFA, respectively.
 License: GPL (>= 2)
 Imports: Rcpp, stats
-LinkingTo: Rcpp
+LinkingTo: Rcpp, cpp11
 Encoding: UTF-8
 NeedsCompilation: yes
 RoxygenNote: 7.2.1
