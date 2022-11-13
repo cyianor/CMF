@@ -2,3 +2,4 @@
 \.Rproj$
 ^.vscode$
 ^\.clang-format$
+^scripts$
