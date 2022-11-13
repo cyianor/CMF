@@ -53,7 +53,7 @@ group-wise sparse CMF that identifies both shared and private factors
 the group-wise sparsity, providing a CMF solution that attempts to learn
 only factors shared by all matrices. Finally, \code{method="GFA"} implements
 the group factor analysis (GFA) method, by fixing the variance of
-\code{U[[1]]} to one and forcing \code{useBias=FALSE}. Then \code{U[[1]]} can be
+\code{U[[1]]} to one and forcing \code{useBias = FALSE}. Then \code{U[[1]]} can be
 interpreted as latent variables with unit variance and zero mean,
 as assumed by GFA and CCA (special case of GFA with \code{M = 2}). Note that as a
 multi-view learning method \code{"GFA"} requires all matrices to share the

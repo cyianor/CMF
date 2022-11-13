@@ -11,7 +11,8 @@ p_gradUsparseWrapper(r, par, stochastic = FALSE)
 
 \item{par}{?}
 
-\item{stochastic}{Whether or not to perform updates on a subsample}
+\item{stochastic}{Whet
+her or not to perform updates on a subsample}
 }
 \value{
 Gradient
