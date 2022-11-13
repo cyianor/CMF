@@ -132,7 +132,7 @@ NULL
 #' the group-wise sparsity, providing a CMF solution that attempts to learn
 #' only factors shared by all matrices. Finally, `method="GFA"` implements
 #' the group factor analysis (GFA) method, by fixing the variance of
-#' `U[[1]]` to one and forcing `useBias=FALSE`. Then `U[[1]]` can be
+#' `U[[1]]` to one and forcing `useBias = FALSE`. Then `U[[1]]` can be
 #' interpreted as latent variables with unit variance and zero mean,
 #' as assumed by GFA and CCA (special case of GFA with `M = 2`). Note that as a
 #' multi-view learning method `"GFA"` requires all matrices to share the
@@ -405,6 +405,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 
   # Store indices separately as integers
   indices <- lapply(X, function(x) matrix(as.integer(x[, 1:2]), ncol = 2))
+  # Store data separately as well
+  xs <- lapply(X, function(x) x[, 3])
 
   if (opts$method == "GFA") {
     opts$useBias <- FALSE
@@ -443,24 +445,20 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   beta_0t <- opts$prior.beta_0t
 
   # ARD and noise parameters
-  alpha <- matrix(opts$init.alpha, C, K)  # The mean of the ARD precisions
-  b_ard <- matrix(0, C, K)                # The parameters of the Gamma
-                                          #   distribution
-  a_ard <- alpha_0 + D / 2                # for ARD precisions
+  alpha <- matrix(opts$init.alpha, C, K)  # means of the ARD precisions
+  a_ard <- alpha_0 + D / 2                # shape for ARD precisions
+  b_ard <- matrix(0, C, K)                # rate for ARD precisions
+  
   tau <- rep(opts$init.tau, M)            # The mean noise precisions
-  a_tau <- rep(alpha_0t, M)               # The parameters of the Gamma
-                                          #   distribution
-  for (m in seq_len(M)) {
-     a_tau[m] <- a_tau[m] + nrow(X[[m]]) / 2
-  }
-  b_tau <- rep(0, M)                      #     for the noise precisions
+  a_tau <- sapply(X, nrow) + alpha_0t     # shape for noise precision
+  b_tau <- rep(0, M)                      # rate for noise precision
 
   # The projections
-  U <- vector("list", length = C)
-  covU <- vector("list", length = C)      # The covariances
+  U <- vector("list", length = C)         # means
+  covU <- vector("list", length = C)      # variances
 
   bias <- vector("list", length = M)
-  for (i in 1:C) {
+  for (i in seq_len(C)) {
     # Random initialization
     U[[i]] <- matrix(rnorm(D[i] * K, 0, 1 / sqrt(opts$init.alpha)), D[i], K)
     covU[[i]] <- matrix(1 / D[i], D[i], K)
@@ -469,7 +467,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   #
   # Parameters for modeling the row and column bias terms
   #
-  for (m in 1:M) {
+  for (m in seq_len(M)) {
     bias[[m]]$row$mu <- rep(0, D[inds[m, 1]])
     bias[[m]]$row$m <- 0
     if (!opts$useBias) {
@@ -496,20 +494,20 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   }
 
   # Pseudo data
-  origX <- lapply(X, function(x) x[, 3])
+  xs_raw <- xs
   for (m in which(likelihood == "bernoulli")) {
     tau[m] <- 0.25
     xi <- p_updatePseudoData(
       indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
       bias[[m]]$row$mu, bias[[m]]$col$mu
     )
-    X[[m]][, 3] <- (
-      xi - (1 / (1 + exp(-xi)) - origX[[m]]) / tau[m]
+    xs[[m]] <- (
+      xi - (1 / (1 + exp(-xi)) - xs_raw[[m]]) / tau[m]
     )
   }
 
   for (m in which(likelihood == "poisson")) {
-    maxval <- max(X[[m]][, 3])
+    maxval <- max(xs[[m]])
     # print(paste("Maximal count in view ",m," is ",maxval,
     #             "; consider clipping if this is very large.",sep=""))
     tau[m] <- 0.25 + 0.17 * maxval
@@ -517,8 +515,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
       bias[[m]]$row$mu, bias[[m]]$col$mu
     )
-    X[[m]][, 3] <- (
-      xi - 1 / (1 + exp(-xi)) * (1 - origX[[m]] / log(1 + exp(xi))) / tau[m]
+    xs[[m]] <- (
+      xi - 1 / (1 + exp(-xi)) * (1 - xs_raw[[m]] / log(1 + exp(xi))) / tau[m]
     )
   }
 
@@ -529,7 +527,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   #
   errors <- array(0, c(opts$iter.max, M))
   for (iter in seq_len(opts$iter.max)) {
-    #gc() # Just to make sure there are no memory leaks
+    # gc() # Just to make sure there are no memory leaks
     if ((opts$verbose > 0) && (iter %% 10 == 1)) {
       cat(paste0("Iteration: ", iter, "/", opts$iter.max, "\n"))
     }
@@ -537,27 +535,29 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     # Update the weight matrices, using gradients (and diagonal Hessian)
     #
     norm <- 0
+    final_norm <- 0
     for (i in sample(C)) {
       #
       # Update the variance
       #
       covU[[i]] <- matrix(alpha[i, ], nrow = D[i], ncol = K, byrow = TRUE)
       for (m in which(inds[, 1] == i)) {
-        # NOTE: Directly modifies covU[[i]]
-        p_covUsparse(
-          X[[m]], covU[[i]], U[[inds[m, 2]]], covU[[inds[m, 2]]], 1, tau[m]
+        covU[[i]] <- p_covUsparse(
+          indices[[m]], covU[[i]], U[[inds[m, 2]]], covU[[inds[m, 2]]],
+          1, tau[m]
         )
       }
       for (m in which(inds[, 2] == i)) {
-        p_covUsparse(
-          X[[m]], covU[[i]], U[[inds[m, 1]]], covU[[inds[m, 1]]], 2, tau[m]
+       covU[[i]] <-  p_covUsparse(
+          indices[[m]], covU[[i]], U[[inds[m, 1]]], covU[[inds[m, 1]]],
+          2, tau[m]
         )
       }
       covU[[i]] <- 1 / covU[[i]]
       # Update U itself
       par <- list(
         D = D, alpha = alpha, tau = tau,
-        X = X, U = U, covU = covU, inds = inds, bias = bias
+        indices = indices, xs = xs, U = U, covU = covU, inds = inds, bias = bias
       )
       par$this <- i
 
@@ -573,10 +573,14 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 
         U[[i]] <- reg * U[[i]] + (1 - reg) * (U[[i]] - scale * g)
         norm <- norm + sum(g^2)
+        if (n == opts$grad.iter) {
+          final_norm <- sum(g^2)
+        }
       }
     }
     if ((opts$verbose > 1) && (iter %% 10 == 1)) {
-      cat(paste0(" Gradient norm: ", norm, "\n"))
+      cat(sprintf(" Summed gradient squared norm: %.5e\n", norm))
+      cat(sprintf(" Final gradient squared norm: %.5e\n", sum(g^2)))
     }
 
     #
@@ -586,7 +590,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       for (m in seq_len(M)) {
         # The approximations for each data point
         temp <- p_updateMean(
-          X[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]], 1, bias[[m]]$col$mu
+          indices[[m]], xs[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+          1, bias[[m]]$col$mu
         )
         bias[[m]]$row$count <- temp$count
         bias[[m]]$row$nu <- (
@@ -611,7 +616,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 
         # The approximations for each data point
         temp <- p_updateMean(
-          X[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]], 2, bias[[m]]$row$mu
+          indices[[m]], xs[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
+          2, bias[[m]]$row$mu
         )
         bias[[m]]$col$count <- temp$count
         bias[[m]]$col$nu <- (
@@ -662,11 +668,10 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     # Update tau, the noise precisions; only needed for Gaussian likelihood
     #
     for (m in which(likelihood == "gaussian")) {
-      b_tau[m] <- beta_0t
       v1 <- inds[m, 1]
       v2 <- inds[m, 2]
       b_tau[m] <- beta_0t + 0.5 * p_updateTau(
-        X[[m]], U[[v1]], U[[v2]],
+        indices[[m]], xs[[m]], U[[v1]], U[[v2]],
         covU[[v1]], covU[[v2]],
         bias[[m]]$row$mu, bias[[m]]$col$mu,
         bias[[m]]$row$nu, bias[[m]]$col$nu
@@ -683,8 +688,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
         bias[[m]]$row$mu, bias[[m]]$col$mu
       )
-      X[[m]][, 3] <- (
-        xi - (1 / (1 + exp(-xi)) - origX[[m]]) / tau[m]
+      xs[[m]] <- (
+        xi - (1 / (1 + exp(-xi)) - xs_raw[[m]]) / tau[m]
       )
     }
 
@@ -693,14 +698,14 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         indices[[m]], U[[inds[m, 1]]], U[[inds[m, 2]]],
         bias[[m]]$row$mu, bias[[m]]$col$mu
       )
-      X[[m]][, 3] <- (
-        xi - 1 / (1 + exp(-xi)) * (1 - origX[[m]] / log(1 + exp(xi))) / tau[m]
+      xs[[m]] <- (
+        xi - (1 - xs_raw[[m]] / log(1 + exp(xi))) / ((1 + exp(-xi)) * tau[m])
       )
     }
 
     par <- list(
       D = D, alpha = alpha, tau = tau,
-      X = X, U = U, covU = covU, inds = inds, this = 1
+      indices = indices, xs = xs, U = U, covU = covU, inds = inds, this = 1
     )
 
     if (!is.null(test)) {
@@ -739,8 +744,14 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
           logtau <- digamma(a_tau[m]) - log(b_tau[m])
           tcost <- (
             tcost
-            - dim(X[[m]])[1] * 0.5 * logtau
-            + (b_tau[m] - a_tau[m]) * tau[m]
+            - length(xs[[m]]) * 0.5 * logtau
+            # + (b_tau[m] - a_tau[m]) * tau[m] # old term
+            # b_tau[m] contains the necessary likelihood terms; however,
+            # subtracting a_tau[m] seems strange. Should be beta_0t, but
+            # since it is a constant term, it also does not change the result
+            # much. a_tau[m] is not constant across m and might lead to
+            # strange bias
+            + (b_tau[m] - beta_0t) * tau[m]
           )
 
           # KL divergence for tau
@@ -757,7 +768,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
           tcost <- tcost - temp
         } else {
           # Quadratic likelihood for non-Gaussian data
-          temp <- sum(tau[m] * (X[[m]][, 3] - origX[[m]])^2 / 2)
+          temp <- sum(tau[m] * (xs[[m]] - xs_raw[[m]])^2 / 2)
           tcost <- tcost - temp
         }
 
@@ -767,7 +778,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
             -0.5 * log(bias[[m]]$row$nu)
             + 0.5 * log(bias[[m]]$row$scale)
             + (
-              (bias[[m]]$row$nu + (bias[[m]]$row$m - bias[[m]]$row$mu)^2)
+              (bias[[m]]$row$nu + (bias[[m]]$row$m - bias[[m]]$row$mu)^2
+              + bias[[m]]$row$lambda) # missing term
               / (2 * bias[[m]]$row$scale) - 0.5
             )
           )
@@ -775,25 +787,28 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
             -0.5 * log(bias[[m]]$col$nu)
             + 0.5 * log(bias[[m]]$col$scale)
             + (
-              (bias[[m]]$col$nu + (bias[[m]]$col$m - bias[[m]]$col$mu)^2)
+              (bias[[m]]$col$nu + (bias[[m]]$col$m - bias[[m]]$col$mu)^2
+              + bias[[m]]$col$lambda) # missing term
               / (2 * bias[[m]]$col$scale) - 0.5
             )
           )
           temp <- (
             temp
-            - 0.5 * log(bias[[m]]$row$scale)
+            - 0.5 * log(bias[[m]]$row$lambda) # was scale, I think it should be lambda
             + 0.5 * log(1)
             + (
-              (bias[[m]]$row$scale - (0 - bias[[m]]$row$m)^2)
+              (bias[[m]]$row$lambda + (0 - bias[[m]]$row$m)^2) # was scale, I think it should be lambda
+                                                               # I also think it should be + between terms instead of -
               / (2 * 1^2) - 0.5
             )
           )
           temp <- (
             temp
-            - 0.5 * log(bias[[m]]$col$scale)
+            - 0.5 * log(bias[[m]]$col$lambda) # was scale, I think it should be lambda
             + 0.5 * log(1)
             + (
-              (bias[[m]]$col$scale - (0 - bias[[m]]$col$m)^2)
+              (bias[[m]]$col$lambda + (0 - bias[[m]]$col$m)^2) # was scale, I think it should be lambda
+                                                               # I also think it should be + between terms instead of -
               / (2 * 1^2) - 0.5
             )
           )
@@ -801,16 +816,17 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         }
       }
 
-      if (opts$method == "CMF") {
+      # This should be the correct path for "gCMF" and "GFA", but not for "CMF"
+      if (opts$method != "CMF") {
         for (i in seq_len(C)) {
           for (k in seq_len(K)) {
-            logalpha <- digamma(a_ard[i]) - log(b_ard[i,k])
+            logalpha <- digamma(a_ard[i]) - log(b_ard[i, k])
 
             # The U and covU terms
             temp <- (
               0.5 * dim(covU[[i]])[1] * logalpha
-              - 0.5 * sum(covU[[i]][,k] + U[[i]][,k]^2) * alpha[i,k]
-              + 0.5 * sum(log(covU[[i]][,k]))
+              - 0.5 * sum(covU[[i]][, k] + U[[i]][, k]^2) * alpha[i, k]
+              + 0.5 * sum(log(covU[[i]][, k]))
             )
             tcost <- tcost - temp
 
@@ -907,7 +923,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     out = out,
     M = M,
     likelihood = likelihood,
-    opts = opts
+    opts = opts,
+    xis = xs
   ))
 }
 
@@ -915,7 +932,8 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 #'
 #' @param r ?
 #' @param par ?
-#' @param stochastic Whether or not to perform updates on a subsample
+#' @param stochastic Whet
+#' her or not to perform updates on a subsample
 #'
 #' @return Gradient
 p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
@@ -928,15 +946,17 @@ p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
   for (m in which(par$inds[, 1] == par$this)) {
     v2 <- par$inds[m, 2]
     if (stochastic && m == 1) {
-      part <- sample(nrow(par$X[[m]]), round(nrow(par$X[[m]]) / 10))
+      part <- sample(length(par$xs[[m]]), round(length(par$xs[[m]]) / 10))
       # NOTE: p_gradUsparse directly modifies g
-      p_gradUsparse(
-        par$X[[m]][part, ], g, cur, par$U[[v2]], par$covU[[v2]], 1,
+      g <- p_gradUsparse(
+        par$indices[[m]], par$xs[[m]][part, ], g, cur,
+        par$U[[v2]], par$covU[[v2]], 1,
         par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
       )
     } else {
-      p_gradUsparse(
-        par$X[[m]], g, cur, par$U[[v2]], par$covU[[v2]], 1,
+      g <- p_gradUsparse(
+        par$indices[[m]], par$xs[[m]], g, cur,
+        par$U[[v2]], par$covU[[v2]], 1,
         par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
       )
     }
@@ -945,14 +965,16 @@ p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
   for (m in which(par$inds[, 2] == par$this)) {
     v1 <- par$inds[m, 1]
     if (stochastic && m == 1) {
-      part <- sample(nrow(par$X[[m]]), round(nrow(par$X[[m]]) / 10))
-      p_gradUsparse(
-        par$X[[m]][part, ], g, cur, par$U[[v1]], par$covU[[v1]], 2,
+      part <- sample(length(par$xs[[m]]), round(length(par$xs[[m]]) / 10))
+      g <- p_gradUsparse(
+        par$indices[[m]], par$xs[[m]][part, ], g, cur,
+        par$U[[v1]], par$covU[[v1]], 2,
         par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
       )
     } else {
-      p_gradUsparse(
-        par$X[[m]], g, cur, par$U[[v1]], par$covU[[v1]], 2,
+      g <- p_gradUsparse(
+        par$indices[[m]], par$xs[[m]], g, cur,
+        par$U[[v1]], par$covU[[v1]], 2,
         par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
       )
     }
