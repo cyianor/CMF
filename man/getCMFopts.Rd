@@ -28,6 +28,8 @@ Defaults to \code{TRUE}.}
 \item{verbose}{0 = supress all printing, 1 = print current iteration and
 test RMSE every now and then, 2 = in addition to level 1
 print also the current gradient norm.}
+\item{freq}{How often progress updates are printed if verbose is \code{TRUE}.
+Default is 10.}
 \item{useBias}{Set this to \code{FALSE} to exclude the row and column bias terms.
 The default is \code{TRUE}.}
 \item{method}{Default value of "gCMF" computes the CMF with group-sparsity.

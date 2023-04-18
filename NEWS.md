@@ -1,5 +1,8 @@
 # CMF 1.0.4
 
+## New features
+* Progress printing frequency can be controlled with new option `freq`
+
 ## Bug fixes
 * Added back missing `/ 2` in initialization of `a_tau`
 * Corrected some programming errors during loss computation

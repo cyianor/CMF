@@ -159,6 +159,8 @@ NULL
 #' \item{verbose}{0 = supress all printing, 1 = print current iteration and
 #'                test RMSE every now and then, 2 = in addition to level 1
 #'                print also the current gradient norm.}
+#' \item{freq}{How often progress updates are printed if verbose is `TRUE`.
+#'             Default is 10.}
 #' \item{useBias}{Set this to `FALSE` to exclude the row and column bias terms.
 #'                The default is `TRUE`.}
 #' \item{method}{Default value of "gCMF" computes the CMF with group-sparsity.
@@ -216,6 +218,7 @@ getCMFopts <- function() {
 
   computeCost <- TRUE
   verbose <- 1 # 1=print progress every now and then, 0=supress all printing
+  freq <- 10 # Print progress every freq iterations
   useBias <- TRUE # Whether to include bias terms;
                   # useBias = FALSE means no bias terms
 
@@ -528,7 +531,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   errors <- array(0, c(opts$iter.max, M))
   for (iter in seq_len(opts$iter.max)) {
     # gc() # Just to make sure there are no memory leaks
-    if ((opts$verbose > 0) && (iter %% 10 == 1)) {
+    if ((opts$verbose > 0) && (iter %% opts$freq == 1)) {
       cat(paste0("Iteration: ", iter, "/", opts$iter.max, "\n"))
     }
 
@@ -591,7 +594,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         norm <- norm + sum(g^2)
       }
     }
-    if ((opts$verbose > 1) && (iter %% 10 == 1)) {
+    if ((opts$verbose > 1) && (iter %% opts$freq == 1)) {
       cat(sprintf(" Summed gradient squared norm: %.5e\n", norm))
     }
 
@@ -742,7 +745,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         error[m] <- sqrt(mean((test[[m]][, 3] - pred[[m]])^2))
       }
       errors[iter, ] <- error
-      if ((opts$verbose > 0) && (iter %% 10 == 1)) {
+      if ((opts$verbose > 0) && (iter %% opts$freq == 1)) {
         cat(paste0("Test error: ", paste(error, collapse = " "), "\n"))
       }
     }
