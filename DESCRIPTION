@@ -29,7 +29,7 @@ SystemRequirements: C++11
 Encoding: UTF-8
 Language: en-US
 NeedsCompilation: yes
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/cyianor/CMF
 BugReports: https://github.com/cyianor/CMF/issues

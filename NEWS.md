@@ -17,6 +17,7 @@
 * Added `Language: en-US` to `DESCRIPTION`
 * Removed `Date` from `DESCRIPTION`
 * Add a `inst/CITATION` file for the original CMF article
+* Bump roxygen2 version to `7.2.3`
 
 # CMF 1.0.3
 
