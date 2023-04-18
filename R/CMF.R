@@ -531,11 +531,11 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
     if ((opts$verbose > 0) && (iter %% 10 == 1)) {
       cat(paste0("Iteration: ", iter, "/", opts$iter.max, "\n"))
     }
+
     #
     # Update the weight matrices, using gradients (and diagonal Hessian)
     #
     norm <- 0
-    final_norm <- 0
     for (i in sample(C)) {
       #
       # Update the variance
@@ -554,33 +554,38 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
         )
       }
       covU[[i]] <- 1 / covU[[i]]
+
       # Update U itself
-      par <- list(
-        D = D, alpha = alpha, tau = tau,
-        indices = indices, xs = xs, U = U, covU = covU, inds = inds, bias = bias
-      )
-      par$this <- i
 
       # The inverse Hessian happens to be the covariance
       # (see Ilin & Raiko, JMLR 2010)
       scale <- covU[[i]]
       reg <- opts$grad.reg
-      for (n in 1:opts$grad.iter) {
-        g <- p_gradUsparseWrapper(U[[i]], par, stochastic = FALSE)
+      for (n in seq_len(opts$grad.iter)) {
+        g <- p_gradUsparseWrapper(
+          U[[i]],
+          D = D,
+          alpha = alpha,
+          tau = tau,
+          indices = indices,
+          xs = xs,
+          U = U,
+          covU = covU,
+          inds = inds,
+          bias = bias,
+          this = i,
+          stochastic = FALSE
+        )
         if (max(abs(scale * g)) > opts$grad.max) {
           scale <- opts$grad.max * scale / max(abs(scale * g))
         }
 
         U[[i]] <- reg * U[[i]] + (1 - reg) * (U[[i]] - scale * g)
         norm <- norm + sum(g^2)
-        if (n == opts$grad.iter) {
-          final_norm <- sum(g^2)
-        }
       }
     }
     if ((opts$verbose > 1) && (iter %% 10 == 1)) {
       cat(sprintf(" Summed gradient squared norm: %.5e\n", norm))
-      cat(sprintf(" Final gradient squared norm: %.5e\n", sum(g^2)))
     }
 
     #
@@ -703,10 +708,10 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       )
     }
 
-    par <- list(
-      D = D, alpha = alpha, tau = tau,
-      indices = indices, xs = xs, U = U, covU = covU, inds = inds, this = 1
-    )
+    # par <- list(
+    #   D = D, alpha = alpha, tau = tau,
+    #   indices = indices, xs = xs, U = U, covU = covU, inds = inds, this = 1
+    # )
 
     if (!is.null(test)) {
       pred <- list()
@@ -930,51 +935,68 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 
 #' Internal function for computing the gradients
 #'
-#' @param r ?
-#' @param par ?
+#' @param Ui The current `U[[i]]` used for updating the gradient.
+#' @param D
+#' @param alpha
+#' @param tau
+#' @param indices
+#' @param xs
+#' @param U
+#' @param covU
+#' @param inds
+#' @param bias
+#' @param this Current entity
 #' @param stochastic Whether or not to perform updates on a subsample
 #'
 #' @return Gradient
-p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
-  g <- matrix(r, nrow = par$D[par$this])
+#'
+#' @keywords internal
+p_gradUsparseWrapper <- function(Ui,
+                                 D,
+                                 alpha,
+                                 tau,
+                                 indices,
+                                 xs,
+                                 U,
+                                 covU,
+                                 inds,
+                                 bias,
+                                 this,
+                                 stochastic = FALSE) {
+  g <- matrix(Ui, nrow = D[this])
   cur <- g
-  for (j in seq_len(par$D[par$this])) {
-    g[j, ] <- g[j, ] * par$alpha[par$this, ]
+  for (j in seq_len(D[this])) {
+    g[j, ] <- g[j, ] * alpha[this, ]
   }
 
-  for (m in which(par$inds[, 1] == par$this)) {
-    v2 <- par$inds[m, 2]
+  for (m in which(inds[, 1] == this)) {
+    v2 <- inds[m, 2]
     if (stochastic && m == 1) {
-      part <- sample(length(par$xs[[m]]), round(length(par$xs[[m]]) / 10))
-      # NOTE: p_gradUsparse directly modifies g
+      part <- sample(length(xs[[m]]), round(length(xs[[m]]) / 10))
       g <- p_gradUsparse(
-        par$indices[[m]], par$xs[[m]][part, ], g, cur,
-        par$U[[v2]], par$covU[[v2]], 1,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+        indices[[m]], xs[[m]][part, ], g, cur, U[[v2]], covU[[v2]], 1,
+        tau[m], bias[[m]]$row$mu, bias[[m]]$col$mu
       )
     } else {
       g <- p_gradUsparse(
-        par$indices[[m]], par$xs[[m]], g, cur,
-        par$U[[v2]], par$covU[[v2]], 1,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+        indices[[m]], xs[[m]], g, cur, U[[v2]], covU[[v2]], 1,
+        tau[m], bias[[m]]$row$mu, bias[[m]]$col$mu
       )
     }
   }
 
-  for (m in which(par$inds[, 2] == par$this)) {
-    v1 <- par$inds[m, 1]
+  for (m in which(inds[, 2] == this)) {
+    v1 <- inds[m, 1]
     if (stochastic && m == 1) {
-      part <- sample(length(par$xs[[m]]), round(length(par$xs[[m]]) / 10))
+      part <- sample(length(xs[[m]]), round(length(xs[[m]]) / 10))
       g <- p_gradUsparse(
-        par$indices[[m]], par$xs[[m]][part, ], g, cur,
-        par$U[[v1]], par$covU[[v1]], 2,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+        indices[[m]], xs[[m]][part, ], g, cur, U[[v1]], covU[[v1]], 2,
+        tau[m], bias[[m]]$row$mu, bias[[m]]$col$mu
       )
     } else {
       g <- p_gradUsparse(
-        par$indices[[m]], par$xs[[m]], g, cur,
-        par$U[[v1]], par$covU[[v1]], 2,
-        par$tau[m], par$bias[[m]]$row$mu, par$bias[[m]]$col$mu
+        indices[[m]], xs[[m]], g, cur, U[[v1]], covU[[v1]], 2,
+        tau[m], bias[[m]]$row$mu, bias[[m]]$col$mu
       )
     }
   }
