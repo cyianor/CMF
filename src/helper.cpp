@@ -8,7 +8,6 @@ using namespace cpp11;
     const integers_matrix<> indices, const doubles Xm, const doubles_matrix<> Gm,
     const doubles_matrix<> CUm, const doubles_matrix<> OUm, const doubles_matrix<> Cm,
     const int idx, const double tau, const doubles Rowm, const doubles Colm) {
-  // double* const pGm = REAL(Gm.data());
   writable::doubles_matrix<> Gm_out(Gm);
 
   const int N = indices.nrow();
@@ -28,7 +27,6 @@ using namespace cpp11;
       tmp += -Xm[n] + Rowm[r] + Colm[c];
 
       for (int k = 0; k < K; k++) {
-        // pGm[r + k * K] += tau * (tmp * OUm(c, k) + CUm(r, k) * Cm(c, k));
         Gm_out(r, k) += tau * (tmp * OUm(c, k) + CUm(r, k) * Cm(c, k));
       }
     }
@@ -44,7 +42,6 @@ using namespace cpp11;
       tmp += -Xm[n] + Rowm[r] + Colm[c];
 
       for (int k = 0; k < K; k++) {
-        // pGm[c + k * K] += tau * (tmp * OUm(r, k) + CUm(c, k) * Cm(r, k));
         Gm_out(c, k) += tau * (tmp * OUm(r, k) + CUm(c, k) * Cm(r, k));
       }
     }
@@ -153,7 +150,6 @@ using namespace cpp11;
                                                   const doubles_matrix<> OUm,
                                                   const doubles_matrix<> OCm,
                                                   const int idx, const double tau) {
-  // double* const pCm = REAL(Cm.data());
   writable::doubles_matrix<> Cm_out(Cm);
 
   const int N = indices.nrow();
@@ -165,7 +161,6 @@ using namespace cpp11;
       const int c = indices(n, 1) - 1;
 
       for (int k = 0; k < K; k++) {
-        // pCm[r + k * K] += tau * (OUm(c, k) * OUm(c, k) + OCm(c, k));
         Cm_out(r, k) += tau * (OUm(c, k) * OUm(c, k) + OCm(c, k));
       }
     }
@@ -175,7 +170,6 @@ using namespace cpp11;
       const int c = indices(n, 1) - 1;
 
       for (int k = 0; k < K; k++) {
-        // pCm[c + k * K] += tau * (OUm(r, k) * OUm(r, k) + OCm(r, k));
         Cm_out(c, k) += tau * (OUm(r, k) * OUm(r, k) + OCm(r, k));
       }
     }
