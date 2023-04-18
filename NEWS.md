@@ -9,6 +9,7 @@
   and data as numeric/floating point values. Theoretically reduces the storage
   need from n * 8 * 3 to n * (8 + 4 * 2), so 33% less. (WIP; this representation
   needs to be used also outside of the main function)
+* Old unused code was removed (`p_gradUsparseWrapper`)
 
 ## Minor changes
 * Added a `NEWS.md` file to track changes to the package.
