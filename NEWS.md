@@ -1,11 +1,14 @@
 # CMF 1.0.4
 
+## Bug fixes
+* Added back missing `/ 2` in initialization of `a_tau`
+* Corrected some programming errors during loss computation
+
 ## Internal changes
 * Split indices from data values; this way indices can be stored as integers
   and data as numeric/floating point values. Theoretically reduces the storage
-  need from n * 8 * 3 to n * (8 + 4 * 2), so 33% less. (WIP; needs to be
-  implemented also from the start and not just internally of the estimation
-  function)
+  need from n * 8 * 3 to n * (8 + 4 * 2), so 33% less. (WIP; this representation
+  needs to be used also outside of the main function)
 
 ## Minor changes
 * Added a `NEWS.md` file to track changes to the package.

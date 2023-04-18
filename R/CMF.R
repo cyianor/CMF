@@ -448,9 +448,9 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
   alpha <- matrix(opts$init.alpha, C, K)  # means of the ARD precisions
   a_ard <- alpha_0 + D / 2                # shape for ARD precisions
   b_ard <- matrix(0, C, K)                # rate for ARD precisions
-  
+
   tau <- rep(opts$init.tau, M)            # The mean noise precisions
-  a_tau <- sapply(X, nrow) + alpha_0t     # shape for noise precision
+  a_tau <- sapply(X, nrow) / 2 + alpha_0t # shape for noise precision
   b_tau <- rep(0, M)                      # rate for noise precision
 
   # The projections
@@ -932,8 +932,7 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
 #'
 #' @param r ?
 #' @param par ?
-#' @param stochastic Whet
-#' her or not to perform updates on a subsample
+#' @param stochastic Whether or not to perform updates on a subsample
 #'
 #' @return Gradient
 p_gradUsparseWrapper <- function(r, par, stochastic = FALSE) {
