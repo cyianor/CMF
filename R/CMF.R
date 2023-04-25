@@ -718,11 +718,6 @@ CMF <- function(X, inds, K, likelihood, D, test = NULL, opts = NULL) {
       )
     }
 
-    # par <- list(
-    #   D = D, alpha = alpha, tau = tau,
-    #   indices = indices, xs = xs, U = U, covU = covU, inds = inds, this = 1
-    # )
-
     if (!is.null(test)) {
       pred <- list()
       for (m in seq_len(M)) {
