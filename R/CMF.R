@@ -242,6 +242,7 @@ getCMFopts <- function() {
     grad.iter = grad.iter,
     iter.max = iter.max,
     verbose = verbose,
+    freq = freq,
     computeCost = computeCost,
     grad.reg = grad.reg,
     grad.max = grad.max,
