@@ -264,13 +264,13 @@ getCMFopts <- function() {
 #' (RMSE) between the predicted outputs and the values provided in `X`.
 #'
 #' Note that `X` needs to be provided as a set of triplets instead of as
-#' a regular matrix. See [matrix_to_triplets()].
+#' a regular matrix. See [`matrix_to_triplets()`].
 #'
 #' @param X A list of sparse matrices specifying the indices for which to
 #'          make the predictions.
 #'          These matrices must correspond to the structure used for `X`
-#'          when learning the model with `CMF`.
-#' @param model A list of model parameter values provided by `CMF`.
+#'          when learning the model with [`CMF()`].
+#' @param model A list of model parameter values provided by [`CMF()`].
 #' @return A list of
 #' \item{out}{A list of matrices corresponding to predictions for each
 #'            matrix in `X`.}
@@ -335,10 +335,10 @@ predictCMF <- function(X, model) {
 #' Newton-Raphson method, whereas the rest use closed-form updates.
 #'
 #' Note that the input data needs to be given in a specific sparse format.
-#' See [matrix_to_triplets()] for details.
+#' See [`matrix_to_triplets()`] for details.
 #'
 #' The behavior of the algorithm can be modified via the `opts` parameter.
-#' See [getCMFopts()] for details. Of particular interest are the elements
+#' See [`getCMFopts()`] for details. Of particular interest are the elements
 #' `useBias` and `method`.
 #'
 #' For full description of the output parameters, see the referred publication.
